@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>卡牌大师 · 软考背诵</title>
+<meta name="theme-color" content="#121212">
+<meta name="description" content="卡牌大师：问题→钩子→原文 三步递进记忆工具（软考系统规划与管理师知识点背诵）">
+<script>
+/* ============ PWA 内联 manifest（display:standalone） ============
+ * 图标优先用 canvas 把内联 SVG 光栅化成 PNG（安卓启动器渲染更可靠），
+ * canvas 不可用（如 file:// 老旧环境）时回退为 SVG Data URI。
+ * 零外部依赖，所有图标均为内联 Data URI。
+ */
+(function () {
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'
+    + '<rect width="512" height="512" rx="96" fill="#1E1E1E"/>'
+    + '<path d="M256 44l24 50 55 8-40 39 10 55-49-26-49 26 10-55-40-39 55-8z" fill="#F5C542"/>'
+    + '<rect x="76" y="128" width="360" height="272" rx="28" fill="#F5C542"/>'
+    + '<rect x="116" y="184" width="280" height="24" rx="12" fill="#121212" opacity="0.85"/>'
+    + '<rect x="116" y="232" width="280" height="24" rx="12" fill="#121212" opacity="0.55"/>'
+    + '<rect x="116" y="280" width="180" height="24" rx="12" fill="#121212" opacity="0.55"/>'
+    + '</svg>';
+  var svgUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  var icons = [
+    { src: svgUri, sizes: '192x192', type: 'image/svg+xml' },
+    { src: svgUri, sizes: '512x512', type: 'image/svg+xml' }
+  ];
+  function makeManifest() {
+    return {
+      name: '卡牌大师', short_name: '卡牌大师', display: 'standalone',
+      start_url: '.', scope: '.', id: '.',
+      background_color: '#121212', theme_color: '#121212',
+      icons: icons
+    };
+  }
+  function applyManifest() {
+    var link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(makeManifest()));
+    document.head.appendChild(link);
+  }
+  // favicon 立即用 SVG
+  var fav = document.createElement('link');
+  fav.rel = 'icon';
+  fav.href = svgUri;
+  document.head.appendChild(fav);
+  // 尝试 canvas 光栅化 SVG → PNG
+  try {
+    if (typeof Image !== 'undefined' && typeof document.createElement('canvas').getContext === 'function') {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var c512 = document.createElement('canvas');
+          c512.width = c512.height = 512;
+          c512.getContext('2d').drawImage(img, 0, 0, 512, 512);
+          var p512 = c512.toDataURL('image/png');
+          var c192 = document.createElement('canvas');
+          c192.width = c192.height = 192;
+          c192.getContext('2d').drawImage(img, 0, 0, 192, 192);
+          var p192 = c192.toDataURL('image/png');
+          icons = [
+            { src: p192, sizes: '192x192', type: 'image/png' },
+            { src: p512, sizes: '512x512', type: 'image/png' }
+          ];
+        } catch (e2) { /* PNG 生成失败则保留 SVG */ }
+        applyManifest();
+      };
+      img.onerror = function () { applyManifest(); };
+      img.src = svgUri;
+      return;
+    }
+  } catch (e) { /* 继续 */ }
+  applyManifest();
+})();
+</script>
+<style>
+/* ============ 基础与主题（深色护眼，零外部依赖） ============ */
+:root {
+  --bg: #121212;
+  --card: #1E1E1E;
+  --card2: #232323;
+  --text: #E0E0E0;
+  --muted: #9E9E9E;
+  --border: #333333;
+  --gold: #F5C542;
+  --blue: #64B5F6;
+  --green: #81C784;
+  --red: #E57373;
+  color-scheme: dark;   /* 系统控件(滚动条/表单等)跟随深色 */
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  overscroll-behavior-y: none;   /* 防止下拉刷新误触（无害，保留） */
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, "Segoe UI", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  font-size: clamp(14px, 2.4vw, 18px);
+  -webkit-tap-highlight-color: transparent;
+}
+button { touch-action: manipulation; }   /* 防双击缩放 */
+/* 深色滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #4A4A4A; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+.app {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  /* 安全区适配：打孔屏/刘海 + 底部手势条（standalone 模式下不被遮挡） */
+  padding-top: calc(clamp(10px, 2vw, 20px) + env(safe-area-inset-top, 0px));
+  padding-left: calc(clamp(10px, 2vw, 20px) + env(safe-area-inset-left, 0px));
+  padding-right: calc(clamp(10px, 2vw, 20px) + env(safe-area-inset-right, 0px));
+  padding-bottom: calc(clamp(10px, 2vw, 20px) + env(safe-area-inset-bottom, 0px));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8vw, 14px);
+}
+.app-title { font-size: clamp(15px, 2.5vw, 19px); font-weight: 700; letter-spacing: 1px; }
+.app-title .sub { font-size: clamp(11px, 1.7vw, 13px); font-weight: 400; color: var(--muted); margin-left: 8px; }
+
+/* ============ 顶部：双进度条 + 右上角入口 ============ */
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.progress-area { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.p-row { display: flex; align-items: center; gap: 8px; font-size: clamp(11px, 1.8vw, 13px); color: var(--muted); }
+.p-bar { flex: 1; height: 8px; background: #2A2A2A; border-radius: 4px; overflow: hidden; }
+.p-fill { height: 100%; border-radius: 4px; width: 0; transition: width .4s ease; }
+.p-fill.gold { background: linear-gradient(90deg, #F5C542, #FFB300); }
+.p-fill.blue { background: linear-gradient(90deg, #64B5F6, #42A5F5); }
+.p-num { min-width: 4.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.top-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.top-actions button {
+  background: none; border: none; color: var(--blue);
+  font-size: clamp(12px, 2vw, 14px); cursor: pointer; padding: 4px 2px; text-align: right;
+}
+.top-actions button:active { opacity: .6; }
+
+/* ============ 筛选栏 ============ */
+.filters {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px;
+}
+.mode-switch { display: flex; gap: 6px; flex: 1 1 100%; }
+.mode-switch button {
+  flex: 1; min-height: 40px; border-radius: 8px; border: 1px solid var(--border);
+  background: #2A2A2A; color: var(--muted); font-size: clamp(13px, 2vw, 15px); cursor: pointer;
+}
+.mode-switch button.active { background: var(--gold); color: #1a1a1a; border-color: var(--gold); font-weight: 600; }
+.filters select, .filters input[type="search"] {
+  background: #2A2A2A; color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: clamp(13px, 2vw, 15px);
+  min-height: 40px; outline: none;
+}
+.filters select option { background: #2A2A2A; color: var(--text); }
+#filterChapter { max-width: 13em; }
+#searchBox { flex: 1 1 100%; }
+.filters label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: clamp(12px, 1.9vw, 14px); color: var(--muted); cursor: pointer; user-select: none;
+}
+.filters label.disabled { opacity: .4; pointer-events: none; }
+.filters input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold); }
+
+/* ============ 卡片主体 ============ */
+.card-area { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: clamp(16px, 3vw, 24px);
+  display: flex; flex-direction: column; gap: clamp(12px, 2vw, 16px); flex: 1;
+  animation: fadeIn .25s ease;
+}
+.card.mastered { opacity: .5; }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.chapter-tag {
+  font-size: clamp(12px, 1.9vw, 14px); color: var(--gold);
+  background: rgba(245, 197, 66, .1); padding: 4px 10px; border-radius: 999px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.stars { color: var(--gold); letter-spacing: 2px; font-size: clamp(13px, 2.2vw, 16px); flex-shrink: 0; }
+.q-label, .k-label { font-size: clamp(12px, 1.9vw, 14px); color: var(--muted); margin-bottom: 6px; }
+.q-text { font-size: clamp(16px, 2.7vw, 20px); font-weight: 600; line-height: 1.55; }
+.k-text { font-size: clamp(14px, 2.2vw, 16px); color: var(--gold); line-height: 1.55; }
+.k-block { border-left: 3px solid rgba(245,197,66,.4); padding-left: 10px; }
+.hook-empty { color: var(--muted); font-style: normal; }
+.custom-tag {
+  background: rgba(100,181,246,.15); color: var(--blue);
+  font-size: clamp(10px, 1.6vw, 12px); padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle;
+}
+.hook-edit {
+  background: none; border: none; color: var(--blue);
+  font-size: clamp(11px, 1.8vw, 13px); cursor: pointer; padding: 4px 0; margin-top: 6px;
+}
+.hook-edit:active { opacity: .6; }
+.hook-btn {
+  align-self: flex-start; background: none; border: 1px dashed #4A4A4A; color: var(--gold);
+  border-radius: 10px; padding: 10px 16px; min-height: 44px;
+  font-size: clamp(13px, 2.1vw, 15px); cursor: pointer;
+}
+.hook-btn:active { background: rgba(245,197,66,.1); }
+.card-foot {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-size: clamp(11px, 1.7vw, 12px); color: var(--muted);
+}
+.card-foot .badge { color: var(--gold); }
+.card-foot .badge.review { color: var(--blue); }
+
+/* 还原遮罩区 / 答案区 */
+.recall-zone {
+  border: 2px dashed #4A4A4A; border-radius: 12px;
+  padding: clamp(22px, 4.5vw, 36px) clamp(12px, 2vw, 20px);
+  text-align: center; color: var(--muted);
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.025) 0 10px, transparent 10px 20px);
+  animation: fadeIn .3s ease;
+  font-size: clamp(13px, 2.1vw, 15px); line-height: 1.8;
+}
+.recall-zone .arrow { font-size: clamp(22px, 3.6vw, 28px); }
+.check-tip { font-size: clamp(11px, 1.8vw, 13px); color: var(--muted); text-align: center; }
+.answer-zone {
+  background: var(--card2); border: 1px solid var(--border); border-radius: 12px;
+  padding: clamp(14px, 2.5vw, 20px);
+  font-size: clamp(14px, 2.3vw, 16px); line-height: 1.75;
+  white-space: pre-wrap; word-break: break-word;
+  max-height: 42vh; overflow-y: auto;
+  animation: fadeIn .35s ease;
+}
+
+/* ============ 底部操作区（大触摸区域 ≥52px） ============ */
+.actions { display: flex; gap: 10px; }
+.actions button {
+  flex: 1; min-height: 52px; border: none; border-radius: 12px;
+  font-size: clamp(15px, 2.6vw, 17px); font-weight: 600; cursor: pointer;
+  transition: transform .08s ease, filter .15s ease;
+}
+.actions button:active { transform: scale(.97); }
+.btn-primary { background: var(--gold); color: #1a1a1a; }
+.btn-ghost { background: #2A2A2A; color: var(--text); border: 1px solid var(--border); }
+.btn-wrong { background: #3A2626; color: var(--red); border: 1px solid #5C3A3A; }
+.btn-right { background: #1E3A2A; color: var(--green); border: 1px solid #2E5A40; }
+.btn-right.ok-flash { background: #4CAF50; color: #fff; animation: pop .4s ease; }
+
+/* ============ 空状态 ============ */
+.empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 32px 16px; }
+.empty-emoji { font-size: clamp(48px, 9vw, 72px); }
+.empty-title { font-size: clamp(17px, 3vw, 21px); font-weight: 700; }
+.empty-sub { font-size: clamp(13px, 2vw, 15px); color: var(--muted); }
+.empty-state .btn {
+  min-height: 48px; padding: 0 22px; border-radius: 12px; border: 1px solid var(--border);
+  background: #2A2A2A; color: var(--text); font-size: clamp(14px, 2.3vw, 16px); cursor: pointer;
+}
+.empty-state .btn-gold { background: var(--gold); color: #1a1a1a; border: none; font-weight: 600; }
+
+/* ============ 模态框（禁止 alert/confirm） ============ */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,.72);
+  display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px;
+}
+.modal-mask.open { display: flex; }
+.modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  width: 100%; max-width: 560px; max-height: 84vh;
+  display: flex; flex-direction: column; padding: clamp(16px, 3vw, 24px); gap: 12px;
+  animation: fadeIn .2s ease;
+}
+.modal-sm { max-width: 400px; }
+.modal h3 { font-size: clamp(16px, 2.6vw, 19px); }
+.modal h4 { font-size: clamp(14px, 2.2vw, 16px); margin-top: 4px; }
+.modal-body { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.modal .hint { font-size: clamp(12px, 1.9vw, 13px); color: var(--muted); line-height: 1.7; }
+.modal textarea {
+  width: 100%; background: #2A2A2A; color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px; font-size: clamp(13px, 2vw, 14px);
+  font-family: inherit; resize: vertical; outline: none; min-height: 120px;
+}
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-row button {
+  flex: 1; min-height: 44px; border-radius: 10px; border: 1px solid var(--border);
+  background: #2A2A2A; color: var(--text); font-size: clamp(13px, 2.1vw, 15px); cursor: pointer;
+}
+.btn-row .btn-gold { background: var(--gold); color: #1a1a1a; border: none; font-weight: 600; }
+.btn-row .btn-danger { background: #3A2626; color: var(--red); border-color: #5C3A3A; }
+.btn-row .btn-gold:disabled { opacity: .4; cursor: not-allowed; }
+.m-close { min-height: 48px; border-radius: 12px; border: none; background: var(--gold); color: #1a1a1a; font-size: clamp(14px, 2.3vw, 16px); font-weight: 600; cursor: pointer; }
+
+/* 已掌握列表项 */
+.m-item { display: flex; align-items: center; gap: 10px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.m-info { flex: 1; min-width: 0; }
+.m-q { font-size: clamp(13px, 2.1vw, 15px); line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.m-meta { font-size: clamp(11px, 1.7vw, 12px); color: var(--muted); margin-top: 3px; }
+.m-undo { background: #2A2A2A; border: 1px solid var(--border); color: var(--blue); border-radius: 8px; padding: 8px 12px; min-height: 40px; cursor: pointer; flex-shrink: 0; font-size: clamp(13px, 2vw, 14px); }
+
+/* 导入预览 */
+.pv-ok { color: var(--green); font-size: clamp(13px, 2vw, 14px); }
+.pv-empty { color: var(--red); font-size: clamp(13px, 2vw, 14px); }
+.pv-item { font-size: clamp(12px, 1.9vw, 13px); color: var(--text); padding: 5px 0; border-bottom: 1px dashed #333; }
+.pv-more { font-size: clamp(12px, 1.9vw, 13px); color: var(--muted); }
+
+.confirm-text { font-size: clamp(14px, 2.2vw, 16px); line-height: 1.6; }
+
+/* ============ 轻提示 toast ============ */
+#toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+  background: #2E2E2E; color: var(--text); border: 1px solid var(--border);
+  border-radius: 999px; padding: 10px 20px; font-size: 14px; line-height: 1.4;
+  opacity: 0; pointer-events: none; transition: .3s ease; z-index: 100;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5); max-width: 86vw; text-align: center;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============ 安装引导横幅 ============ */
+.install-banner {
+  position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 50%;
+  transform: translateX(-50%) translateY(-16px);
+  display: none; align-items: center; gap: 10px;
+  background: #2E2E2E; border: 1px solid var(--gold); border-radius: 14px;
+  padding: 10px 14px; z-index: 90; max-width: 92vw;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5);
+}
+.install-banner.show { display: flex; animation: fadeIn .3s ease; }
+.ib-text { font-size: clamp(12px, 2vw, 14px); line-height: 1.4; }
+.ib-btn {
+  background: var(--gold); color: #1a1a1a; border: none; border-radius: 8px;
+  padding: 8px 14px; font-size: clamp(13px, 2vw, 14px); font-weight: 600; cursor: pointer;
+  min-height: 40px; white-space: nowrap; flex-shrink: 0;
+}
+.ib-close {
+  background: none; border: none; color: var(--muted);
+  font-size: 15px; cursor: pointer; padding: 6px; flex-shrink: 0;
+}
+
+/* ============ 动画 ============ */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+@media (min-width: 560px) {
+  #searchBox { flex: 1 1 auto; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-title">🃏 卡牌大师<span class="sub">问题 → 钩子 → 原文 · 三步递进背诵</span></div>
+
+  <!-- 顶部状态栏 -->
+  <header class="topbar">
+    <div class="progress-area">
+      <div class="p-row"><span>⭐ 三星掌握率</span><div class="p-bar"><div id="p3" class="p-fill gold"></div></div><span id="p3num" class="p-num">0/0</span></div>
+      <div class="p-row"><span>📚 总进度</span><div class="p-bar"><div id="pt" class="p-fill blue"></div></div><span id="ptnum" class="p-num">0/0</span></div>
+    </div>
+    <div class="top-actions">
+      <button id="btnWake" onclick="toggleWake()">🌙</button>
+      <button onclick="openMastered()">📋 已掌握列表</button>
+      <button onclick="openModal('modalData')">⚙️ 数据</button>
+    </div>
+  </header>
+
+  <!-- 模式切换 + 筛选栏 -->
+  <section class="filters">
+    <div class="mode-switch">
+      <button id="btnModeStudy" class="active" onclick="setMode('study')">🎯 背诵</button>
+      <button id="btnModeBrowse" onclick="setMode('browse')">📖 浏览</button>
+    </div>
+    <select id="filterChapter" onchange="onChapterChange(this.value)"></select>
+    <select id="filterStars" onchange="onStarsChange(this.value)">
+      <option value="全部">全部星级</option>
+      <option value="1">★ 1星</option>
+      <option value="2">★★ 2星</option>
+      <option value="3">★★★ 3星</option>
+    </select>
+    <label id="lblMastered"><input type="checkbox" id="chkMastered" onchange="onMasteredChange(this.checked)"> 显示已掌握</label>
+    <label id="lblWeak"><input type="checkbox" id="chkWeak" onchange="onWeakChange(this.checked)"> 只看薄弱</label>
+    <label><input type="checkbox" id="chkRandom" onchange="onRandomChange(this.checked)"> 🔀 随机顺序</label>
+    <input type="search" id="searchBox" placeholder="🔍 搜索问题 / 钩子 / 原文…" oninput="onSearch(this.value)">
+  </section>
+
+  <!-- 卡片主体 -->
+  <main class="card-area" id="cardView"></main>
+
+  <!-- 底部操作区 -->
+  <footer class="actions" id="actionBar"></footer>
+</div>
+
+<!-- 已掌握列表弹窗 -->
+<div class="modal-mask" id="modalMastered" onclick="if(event.target===this)closeModal('modalMastered')">
+  <div class="modal">
+    <h3>📋 已掌握列表</h3>
+    <div class="modal-body" id="masteredList"></div>
+    <button class="m-close" onclick="closeModal('modalMastered')">关闭</button>
+  </div>
+</div>
+
+<!-- 钩子编辑弹窗 -->
+<div class="modal-mask" id="modalHook" onclick="if(event.target===this)closeModal('modalHook')">
+  <div class="modal modal-sm">
+    <h3>🪝 编辑记忆钩子</h3>
+    <div class="hint">给自己编一个专属钩子（口诀 / 关键词 / 画面），自己加工过的记得最牢。留空 = 不显示钩子。</div>
+    <textarea id="hookText" rows="3" placeholder="输入你的钩子…"></textarea>
+    <div class="btn-row">
+      <button class="btn-gold" onclick="saveHook()">✅ 保存</button>
+      <button onclick="resetHook()">↩️ 恢复老师钩子</button>
+    </div>
+    <button class="m-close" onclick="closeModal('modalHook')">取消</button>
+  </div>
+</div>
+
+<!-- 数据管理弹窗 -->
+<div class="modal-mask" id="modalData" onclick="if(event.target===this)closeModal('modalData')">
+  <div class="modal">
+    <h3>⚙️ 数据管理</h3>
+    <div class="modal-body">
+      <h4>📥 批量导入卡片</h4>
+      <div class="hint">
+        支持两种格式：<br>
+        ① 文档格式：<b>第X章标题</b> / <b>001.★★问题</b> / <b>答：…</b> / <b>【记】钩子</b>（从 Word/PDF 全选复制整章粘贴即可）<br>
+        ② 表格格式：每行一条 <b>章节|问题|钩子|原文|星级</b>（可用 Excel 复制粘贴，分隔符为 Tab 或 |）
+      </div>
+      <textarea id="importText" placeholder="在此粘贴知识点文本…"></textarea>
+      <div class="btn-row">
+        <button onclick="previewImport()">🔍 解析预览</button>
+        <button id="btnDoImport" class="btn-gold" disabled onclick="doImport()">✅ 确认导入</button>
+      </div>
+      <div id="importPreview"></div>
+
+      <h4>💾 学习进度（跨设备同步）</h4>
+      <div class="hint">导入的卡片、自定义钩子、掌握进度都保存在<b>本浏览器</b> localStorage（刷新不丢）。<br>
+      换设备流程：旧设备「📤导出备份」→ 把 <b>HTML 文件 + 备份 JSON</b> 都发到手机 → 手机打开 HTML 后「📥导入备份」，卡片和进度一起恢复。<br>
+      💡 掌握规则：一张卡需在 <b>3 个不同日期</b>各还原正确一次（同一天重复正确不计数），中途点「没还原出来」会清零重来。已掌握的卡可随时「🔁 复习已掌握」拉回重背。</div>
+      <div class="btn-row">
+        <button onclick="exportProgress()">📤 导出备份</button>
+        <button onclick="document.getElementById('importProgressFile').click()">📥 导入备份</button>
+        <input type="file" id="importProgressFile" accept=".json,.txt" style="display:none" onchange="importProgressFile(this.files[0]); this.value='';">
+      </div>
+      <div class="btn-row">
+        <button class="btn-danger" onclick="clearImportedConfirm()">🗑️ 清除导入的卡片</button>
+        <button class="btn-danger" onclick="resetAllConfirm()">🗑️ 重置全部进度</button>
+      </div>
+    </div>
+    <button class="m-close" onclick="closeModal('modalData')">✖ 关闭</button>
+  </div>
+</div>
+
+<!-- 确认弹窗（替代 confirm） -->
+<div class="modal-mask" id="modalConfirm" onclick="if(event.target===this)closeModal('modalConfirm')">
+  <div class="modal modal-sm">
+    <h3>⚠️ 确认操作</h3>
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="btn-row">
+      <button onclick="closeModal('modalConfirm')">取消</button>
+      <button class="btn-danger" id="confirmYes">确认</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- 安装引导横幅（仅 HTTPS 且浏览器支持安装时出现） -->
+<div class="install-banner" id="installBanner">
+  <span class="ib-text">📲 安装「卡牌大师」到手机，独立图标打开更顺手</span>
+  <button class="ib-btn" onclick="installApp()">安装</button>
+  <button class="ib-close" onclick="hideInstallBanner()">✕</button>
+</div>
+
+<script>
+/* =====================================================================
+ * 数据区：BUILTIN_BASE（硬编码的内建卡片，按章节注释分区）
+ * 字段：id / chapter(章节) / question(问题) / keywords(记忆钩子) / answer(完整原文) / stars(1-3星)
+ * 批量导入的卡片会持久化到 localStorage（CARD_KEY），与本数组合并为 KNOWLEDGE_BASE。
+ * ===================================================================== */
+const BUILTIN_BASE = [
+  // ================= 第4章 信息系统规划 =================
+  {
+    id: 1,
+    chapter: "第4章 信息系统规划",
+    question: "信息系统规划的关键价值与意义主要体现在哪几方面？",
+    keywords: "目标路径要一致，任务标准统资源",
+    answer: "1. 确立组织关键数字能力目标。\n2. 明确组织数字能力建设路径。\n3. 确保数字能力建设认识上的一致性。\n4. 具象数字能力建设的关键任务。\n5. 明确数字能力标准与控制措施。\n6. 统筹部署与管理相关建设资源。",
+    stars: 2
+  },
+  {
+    id: 2,
+    chapter: "第4章 信息系统规划",
+    question: "开展信息系统规划的原则有哪些？",
+    keywords: "战整先指柔从",
+    answer: "战略性、整体性、先进性、指导性、柔性、遵从性。",
+    stars: 2
+  }
+];
+
+/* =====================================================================
+ * 卡片库：内建(硬编码) + 导入卡(localStorage 持久化)
+ * 导入的卡片存浏览器 localStorage（CARD_KEY），刷新/关闭页面不丢失。
+ * 换设备时用「📤 导出备份」把卡片一起带走（备份 JSON 含 cards 字段）。
+ * ===================================================================== */
+const CARD_KEY = 'CardExtraCards';
+let extraCards = [];      // 导入的卡片（持久化）
+let KNOWLEDGE_BASE = [];  // 内建 + 导入 合并后的总库
+
+function loadExtraCards() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CARD_KEY) || '[]');
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    const seen = new Set(BUILTIN_BASE.map(c => c.chapter + '\u0001' + c.question));
+    for (const c of raw) {
+      if (!c || typeof c !== 'object' || !c.question) continue;
+      const key = (c.chapter || '未分章') + '\u0001' + c.question;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        id: Math.max(1, parseInt(c.id) || 0),
+        chapter: c.chapter || '未分章',
+        question: String(c.question),
+        keywords: String(c.keywords || ''),
+        answer: String(c.answer || ''),
+        stars: Math.min(3, Math.max(1, parseInt(c.stars) || 1))
+      });
+    }
+    return out;
+  } catch (e) { return []; }
+}
+function saveExtraCards() {
+  try { localStorage.setItem(CARD_KEY, JSON.stringify(extraCards)); }
+  catch (e) { /* 存储不可用时静默降级 */ }
+}
+function rebuildBase() {
+  const seen = new Set(BUILTIN_BASE.map(c => c.chapter + '\u0001' + c.question));
+  const merged = BUILTIN_BASE.slice();
+  for (const c of extraCards) {
+    const key = c.chapter + '\u0001' + c.question;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(c);
+  }
+  KNOWLEDGE_BASE = merged;
+}
+
+/* =====================================================================
+ * 配置
+ * ===================================================================== */
+const MASTERY_REQUIRED = 3;   // 需在 N 个不同日期各还原正确一次才算掌握（同日不重复计数）
+
+/* =====================================================================
+ * 状态与存储
+ * ===================================================================== */
+const STORE_KEY = 'CardMasteryData';
+const HOOK_KEY = 'CardHookOverrides';
+
+const state = {
+  mode: 'study',      // 'study' 背诵 | 'browse' 浏览
+  chapter: '全部',
+  stars: '全部',
+  showMastered: false,
+  weakOnly: false,
+  randomOrder: false,
+  search: '',
+  pool: [],
+  index: 0,
+  step: 1,            // 1 初始(问题) | 2 还原模式(遮罩) | 3 核对自评(显示原文)
+  hookVisible: false  // 钩子默认隐藏，点击"看钩子提示"展开
+};
+
+let mastery = {};      // { id: { mastered, weak, wrongCount, review, correctDates:[] } }
+let hookOverrides = {}; // { id: '自定义钩子' } 自定义钩子优先于老师钩子
+
+function normalizeM(v) {
+  return (v && typeof v === 'object')
+    ? {
+        mastered: !!v.mastered,
+        weak: !!v.weak,
+        wrongCount: Math.max(0, parseInt(v.wrongCount) || 0),
+        review: !!v.review,
+        correctDates: Array.isArray(v.correctDates) ? v.correctDates.filter(d => typeof d === 'string') : []
+      }
+    : { mastered: !!v, weak: false, wrongCount: 0, review: false, correctDates: [] };
+}
+
+function loadMastery() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    const out = {};
+    for (const k of Object.keys(raw)) {
+      const id = Number(k);
+      if (!KNOWLEDGE_BASE.some(c => c.id === id)) continue;
+      out[id] = normalizeM(raw[k]);
+    }
+    return out;
+  } catch (e) { return {}; }
+}
+function saveMastery() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(mastery)); }
+  catch (e) { /* 存储不可用时静默降级 */ }
+}
+function loadHooks() {
+  try { return JSON.parse(localStorage.getItem(HOOK_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveHooks() {
+  try { localStorage.setItem(HOOK_KEY, JSON.stringify(hookOverrides)); }
+  catch (e) { /* 静默降级 */ }
+}
+function cardById(id) { return KNOWLEDGE_BASE.find(c => c.id === id); }
+function dateStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/* =====================================================================
+ * 筛选与池
+ * ===================================================================== */
+function matchesFilter(c) {
+  if (state.chapter !== '全部' && c.chapter !== state.chapter) return false;
+  if (state.stars !== '全部' && c.stars !== Number(state.stars)) return false;
+  if (state.search) {
+    const s = state.search.toLowerCase();
+    const hit = (c.question + ' ' + c.keywords + ' ' + c.answer).toLowerCase().indexOf(s) !== -1;
+    if (!hit) return false;
+  }
+  return true;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function cat(c) {   // 分类：0 待背 | 1 复习中 | 2 已掌握(非复习)
+  const m = mastery[c.id];
+  if (m && m.mastered) return (m.review ? 1 : 2);
+  return 0;
+}
+
+function buildPool() {
+  // 浏览模式：全览，忽略"显示已掌握/只看薄弱"，按 id 顺序（可选随机）
+  if (state.mode === 'browse') {
+    const l = KNOWLEDGE_BASE.filter(matchesFilter).sort((a, b) => a.id - b.id);
+    return state.randomOrder ? shuffle(l) : l;
+  }
+  const list = KNOWLEDGE_BASE.filter(c => {
+    if (!matchesFilter(c)) return false;
+    if (state.weakOnly && !(mastery[c.id] && mastery[c.id].weak)) return false;
+    const m = !!(mastery[c.id] && mastery[c.id].mastered);
+    const r = !!(mastery[c.id] && mastery[c.id].review);
+    if (!r && !state.showMastered && m) return false;  // 复习中的卡总是显示
+    return true;
+  });
+  // 排序：待背(错多优先) → 复习中 → 已掌握
+  list.sort((a, b) => {
+    const ca = cat(a), cb = cat(b);
+    if (ca !== cb) return ca - cb;
+    if (ca === 0) {
+      const wa = (mastery[a.id] && mastery[a.id].wrongCount) || 0;
+      const wb = (mastery[b.id] && mastery[b.id].wrongCount) || 0;
+      if (wb !== wa) return wb - wa;
+    }
+    return a.id - b.id;
+  });
+  return state.randomOrder ? shuffle(list) : list;
+}
+
+/* 重建池（resetIndex=true 回到第一张） */
+function refreshPool(resetIndex) {
+  state.pool = buildPool();
+  if (resetIndex) state.index = 0;
+  if (state.pool.length) state.index = Math.min(state.index, state.pool.length - 1);
+  else state.index = 0;
+  state.step = 1;
+  state.hookVisible = false;
+  render();
+}
+
+/* =====================================================================
+ * 渲染
+ * ===================================================================== */
+function render() { renderProgress(); renderCard(); renderActionBar(); }
+
+function renderProgress() {
+  const total = KNOWLEDGE_BASE.length;
+  let mastered = 0, s3total = 0, s3mastered = 0;
+  for (const c of KNOWLEDGE_BASE) {
+    const m = !!(mastery[c.id] && mastery[c.id].mastered);
+    if (m) mastered++;
+    if (c.stars === 3) { s3total++; if (m) s3mastered++; }
+  }
+  const p3 = s3total ? Math.round(s3mastered / s3total * 100) : 0;
+  const pt = total ? Math.round(mastered / total * 100) : 0;
+  document.getElementById('p3').style.width = p3 + '%';
+  document.getElementById('p3num').textContent = s3mastered + '/' + s3total;
+  document.getElementById('pt').style.width = pt + '%';
+  document.getElementById('ptnum').textContent = mastered + '/' + total;
+}
+
+function renderFilters() {
+  const chapters = [...new Set(KNOWLEDGE_BASE.map(c => c.chapter))];
+  const sel = document.getElementById('filterChapter');
+  sel.innerHTML = '<option value="全部">全部章节</option>'
+    + chapters.map(ch => '<option value="' + escapeHtml(ch) + '">' + escapeHtml(ch) + '</option>').join('');
+  sel.value = state.chapter;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* 钩子块：自定义钩子优先，其次老师钩子；空则显示占位+添加按钮 */
+function hookBlock(card) {
+  const custom = hookOverrides[card.id];
+  const kw = (custom !== undefined) ? custom : card.keywords;
+  const isCustom = (custom !== undefined);
+  if (!kw) {
+    return '<div class="k-block"><div class="k-label">🪝 记忆钩子</div>'
+      + '<div class="k-text hook-empty">（暂无钩子，可自己添加）</div>'
+      + '<button class="hook-edit" onclick="openHookEditor(' + card.id + ')">✏️ 添加钩子</button></div>';
+  }
+  return '<div class="k-block"><div class="k-label">🪝 记忆钩子' + (isCustom ? ' <span class="custom-tag">自定义</span>' : '') + '</div>'
+    + '<div class="k-text">“' + escapeHtml(kw) + '”</div>'
+    + '<button class="hook-edit" onclick="openHookEditor(' + card.id + ')">✏️ 改钩子</button></div>';
+}
+
+function renderCard() {
+  const v = document.getElementById('cardView');
+  if (!state.pool.length) { v.innerHTML = emptyHTML(); return; }
+  const card = state.pool[state.index];
+  const mastered = !!(mastery[card.id] && mastery[card.id].mastered);
+  const isReview = !!(mastery[card.id] && mastery[card.id].review);
+  const starsHtml = '★'.repeat(card.stars) + '☆'.repeat(3 - card.stars);
+
+  if (state.mode === 'browse') {
+    // 浏览模式：问题 + 钩子 + 原文 全部展开
+    v.innerHTML =
+      '<div class="card">'
+      + '<div class="card-head"><span class="chapter-tag">📖 ' + escapeHtml(card.chapter) + '</span><span class="stars">' + starsHtml + '</span></div>'
+      + '<div class="q-block"><div class="q-label">❓ 问题</div><div class="q-text">' + escapeHtml(card.question) + '</div></div>'
+      + hookBlock(card)
+      + '<div class="answer-zone">' + escapeHtml(card.answer) + '</div>'
+      + '<div class="card-foot"><span>📄 ' + (state.index + 1) + ' / ' + state.pool.length + '</span></div>'
+      + '</div>';
+    return;
+  }
+
+  // 背诵模式：三步状态机
+  let zoneHtml = '';
+  if (state.step === 2) {
+    zoneHtml = '<div class="recall-zone"><div class="arrow">⬇️</div><div><b>你的还原区</b></div><div>在心里默念 / 纸上默写，先不看书</div></div>';
+  } else if (state.step === 3) {
+    zoneHtml = '<div class="check-tip">💡 逐条对照：确认每一点都还原出来，再点自评</div>'
+      + '<div class="answer-zone">' + escapeHtml(card.answer) + '</div>';
+  }
+
+  // 钩子：状态①默认隐藏（点击展开；无钩子则显示"添加钩子"）；②③始终显示
+  let hookHtml = '';
+  if (state.step === 1) {
+    if (state.hookVisible) {
+      hookHtml = hookBlock(card);
+    } else {
+      const hasHook = !!(card.keywords || hookOverrides[card.id]);
+      hookHtml = hasHook
+        ? '<button class="hook-btn" onclick="toggleHook()">🪝 看钩子提示</button>'
+        : '<button class="hook-btn" onclick="openHookEditor(' + card.id + ')">✏️ 添加钩子</button>';
+    }
+  } else {
+    hookHtml = hookBlock(card);
+  }
+
+  const cc = (mastery[card.id] && mastery[card.id].correctDates) ? mastery[card.id].correctDates.length : 0;
+  let badge = '<span></span>';
+  if (isReview) badge = '<span class="badge review">🔁 复习中</span>';
+  else if (cc > 0 && !mastered) badge = '<span class="badge">🗂 已还原正确 ' + cc + '/' + MASTERY_REQUIRED + ' 天</span>';
+
+  v.innerHTML =
+    '<div class="card' + (mastered ? ' mastered' : '') + '">'
+    + '<div class="card-head"><span class="chapter-tag">📖 ' + escapeHtml(card.chapter) + '</span><span class="stars">' + starsHtml + '</span></div>'
+    + '<div class="q-block"><div class="q-label">❓ 问题</div><div class="q-text">' + escapeHtml(card.question) + '</div></div>'
+    + hookHtml
+    + zoneHtml
+    + '<div class="card-foot">' + badge + '<span>本范围剩余 ' + state.pool.length + ' 张</span></div>'
+    + '</div>';
+}
+
+function renderActionBar() {
+  const bar = document.getElementById('actionBar');
+  if (!state.pool.length) { bar.innerHTML = ''; return; }
+  if (state.mode === 'browse') {
+    bar.innerHTML = '<button class="btn-ghost" onclick="prevCard()">◀ 上一张</button>'
+      + '<button class="btn-primary" onclick="nextCard()">▶ 下一张</button>';
+    return;
+  }
+  if (state.step === 1) {
+    bar.innerHTML = '<button class="btn-primary" onclick="startRecall()">📝 开始还原</button>';
+  } else if (state.step === 2) {
+    bar.innerHTML = '<button class="btn-primary" onclick="showAnswer()">👁️ 显示原文核对</button>';
+  } else {
+    bar.innerHTML = '<button class="btn-wrong" onclick="markWrong()">😅 没还原出来</button>'
+      + '<button class="btn-right" id="btnRight" onclick="markRight()">✅ 还原正确！</button>';
+  }
+}
+
+function emptyHTML() {
+  if (state.mode === 'browse') {
+    return '<div class="empty-state">'
+      + '<div class="empty-emoji">😶</div>'
+      + '<div class="empty-title">没有匹配的卡片</div>'
+      + '<div class="empty-sub">试试调整章节 / 星级筛选，或清除搜索词</div>'
+      + '</div>';
+  }
+  const anyMatch = KNOWLEDGE_BASE.some(c =>
+    matchesFilter(c) && (!state.weakOnly || (mastery[c.id] && mastery[c.id].weak)));
+  if (anyMatch) {
+    return '<div class="empty-state">'
+      + '<div class="empty-emoji">🎉</div>'
+      + '<div class="empty-title">当前范围全部掌握！</div>'
+      + '<div class="empty-sub">所有卡片都已完成背诵</div>'
+      + '<button class="btn btn-gold" onclick="reviewAll()">🔁 复习已掌握</button>'
+      + '<button class="btn" onclick="openMastered()">📋 查看已掌握列表</button>'
+      + '<button class="btn" onclick="resetAllConfirm()">🔄 重置已掌握进度</button>'
+      + '<div class="empty-sub">💤 睡前再过一遍今天错过的卡，睡眠会帮你巩固记忆</div>'
+      + '</div>';
+  }
+  return '<div class="empty-state">'
+    + '<div class="empty-emoji">😶</div>'
+    + '<div class="empty-title">没有匹配的卡片</div>'
+    + '<div class="empty-sub">试试调整章节 / 星级筛选，或清除搜索词<br>（“只看薄弱”需要先有没还原出来的记录）</div>'
+    + '</div>';
+}
+
+/* =====================================================================
+ * 模式切换
+ * ===================================================================== */
+function setMode(m) {
+  state.mode = m;
+  document.getElementById('btnModeStudy').classList.toggle('active', m === 'study');
+  document.getElementById('btnModeBrowse').classList.toggle('active', m === 'browse');
+  const browse = (m === 'browse');
+  document.getElementById('chkMastered').disabled = browse;
+  document.getElementById('chkWeak').disabled = browse;
+  document.getElementById('lblMastered').classList.toggle('disabled', browse);
+  document.getElementById('lblWeak').classList.toggle('disabled', browse);
+  refreshPool(true);
+}
+
+/* =====================================================================
+ * 三步递进状态机操作
+ * ===================================================================== */
+function toggleHook() { state.hookVisible = !state.hookVisible; renderCard(); }
+
+function startRecall() { state.step = 2; state.hookVisible = true; renderCard(); renderActionBar(); }
+function showAnswer()  { state.step = 3; renderCard(); renderActionBar(); }
+
+function markWrong() {
+  const card = state.pool[state.index];
+  const m = mastery[card.id] || (mastery[card.id] = normalizeM({}));
+  // 复习中的卡还原错了：掉回待背池
+  if (m.review && m.mastered) {
+    m.mastered = false; m.review = false; m.correctDates = [];
+    m.weak = true; m.wrongCount = (m.wrongCount || 0) + 1;
+    saveMastery();
+    state.step = 1; state.hookVisible = false;
+    if (state.pool.length > 1) state.index = (state.index + 1) % state.pool.length;
+    render();
+    return;
+  }
+  m.weak = true;
+  m.wrongCount = (m.wrongCount || 0) + 1;
+  m.correctDates = [];   // 出错清零，重新积累
+  saveMastery();
+  state.step = 1;
+  state.hookVisible = false;
+  if (state.pool.length > 1) state.index = (state.index + 1) % state.pool.length;
+  render();
+}
+
+function markRight() {
+  const card = state.pool[state.index];
+  const m = mastery[card.id] || (mastery[card.id] = normalizeM({}));
+  const btn = document.getElementById('btnRight');
+  const flash = function (txt) {
+    if (btn) { btn.classList.add('ok-flash'); btn.textContent = txt; }
+  };
+  const after = function (fn) { setTimeout(fn, 500); };
+
+  // 复习中的卡：还原正确一次即完成复习（保留已掌握）
+  if (m.review && m.mastered) {
+    m.review = false;
+    saveMastery();
+    flash('✅ 复习完成！');
+    after(function () {
+      state.pool.splice(state.index, 1);
+      if (state.pool.length) state.index = Math.min(state.index, state.pool.length - 1);
+      else state.index = 0;
+      state.step = 1; state.hookVisible = false;
+      render();
+    });
+    return;
+  }
+
+  // 普通背诵：按"不同日期"计数
+  if (!Array.isArray(m.correctDates)) m.correctDates = [];
+  const today = dateStr();
+  const alreadyToday = m.correctDates.indexOf(today) !== -1;
+  if (!alreadyToday) m.correctDates.push(today);
+  const cnt = m.correctDates.length;
+  const done = cnt >= MASTERY_REQUIRED;
+  if (done) m.mastered = true;
+  saveMastery();
+
+  if (done) flash('✅ 已掌握！');
+  else if (alreadyToday) flash('✅ 今日已记录！(' + cnt + '/' + MASTERY_REQUIRED + ' 天)');
+  else flash('✅ 还原正确！(' + cnt + '/' + MASTERY_REQUIRED + ' 天)');
+
+  after(function () {
+    if (done) {
+      state.pool.splice(state.index, 1);
+      if (state.pool.length) state.index = Math.min(state.index, state.pool.length - 1);
+      else state.index = 0;
+    } else if (state.pool.length > 1) {
+      state.index = (state.index + 1) % state.pool.length;
+    }
+    state.step = 1; state.hookVisible = false;
+    render();
+  });
+}
+
+/* 浏览模式翻卡 */
+function prevCard() {
+  if (!state.pool.length) return;
+  state.index = (state.index - 1 + state.pool.length) % state.pool.length;
+  renderCard(); renderActionBar();
+}
+function nextCard() {
+  if (!state.pool.length) return;
+  state.index = (state.index + 1) % state.pool.length;
+  renderCard(); renderActionBar();
+}
+
+/* =====================================================================
+ * 钩子编辑（自定义钩子优先，随进度导出/导入同步）
+ * ===================================================================== */
+let editingHookId = null;
+
+function openHookEditor(id) {
+  editingHookId = id;
+  const card = cardById(id);
+  const custom = hookOverrides[id];
+  const cur = (custom !== undefined) ? custom : (card ? (card.keywords || '') : '');
+  document.getElementById('hookText').value = cur;
+  openModal('modalHook');
+}
+function saveHook() {
+  if (editingHookId == null) return;
+  hookOverrides[editingHookId] = document.getElementById('hookText').value.trim();
+  saveHooks();
+  editingHookId = null;
+  closeModal('modalHook');
+  renderCard();
+  toast('✏️ 钩子已保存');
+}
+function resetHook() {
+  if (editingHookId == null) return;
+  delete hookOverrides[editingHookId];
+  saveHooks();
+  editingHookId = null;
+  closeModal('modalHook');
+  renderCard();
+  toast('↩️ 已恢复老师钩子');
+}
+
+/* =====================================================================
+ * 已掌握列表 / 撤回 / 复习
+ * ===================================================================== */
+function renderMasteredList() {
+  const list = KNOWLEDGE_BASE.filter(c => mastery[c.id] && mastery[c.id].mastered).sort((a, b) => a.id - b.id);
+  const el = document.getElementById('masteredList');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-sub" style="text-align:center;padding:20px 0">暂无已掌握卡片</div>';
+  } else {
+    el.innerHTML = '<div class="btn-row"><button class="btn-gold" onclick="reviewAll()">🔁 复习已掌握（' + list.length + ' 张）</button></div>'
+      + list.map(c =>
+        '<div class="m-item">'
+        + '<div class="m-info"><div class="m-q">' + escapeHtml(c.question) + '</div>'
+        + '<div class="m-meta">' + escapeHtml(c.chapter) + ' · ' + '★'.repeat(c.stars) + '</div></div>'
+        + '<button class="m-undo" onclick="undoMastered(' + c.id + ')">↩️ 撤回</button>'
+        + '</div>').join('');
+  }
+}
+
+function openMastered() {
+  renderMasteredList();
+  openModal('modalMastered');
+}
+
+function undoMastered(id) {
+  const m = mastery[id];
+  if (m) { m.mastered = false; m.review = false; m.correctDates = []; saveMastery(); }
+  refreshPool(false);
+  renderMasteredList();
+  toast('↩️ 已撤回：回到待背池');
+}
+
+function reviewAll() {
+  let n = 0;
+  for (const c of KNOWLEDGE_BASE) {
+    const m = mastery[c.id];
+    if (m && m.mastered && !m.review) { m.review = true; n++; }
+  }
+  saveMastery();
+  closeModal('modalMastered');
+  refreshPool(true);
+  toast(n ? '🔁 ' + n + ' 张已加入复习队列' : '没有可复习的卡片');
+}
+
+/* =====================================================================
+ * 批量导入解析器
+ * 文档格式：第X章标题 / 4.1.小节(忽略) / 001.★★问题 / 答：… / 【记】钩子
+ * 表格格式：章节|问题|钩子|原文|星级 （Tab 或 | 分隔）
+ * ===================================================================== */
+function parseStars(s) {
+  const t = String(s == null ? '' : s).trim();
+  const m = t.match(/★/g);
+  if (m) return Math.min(3, Math.max(1, m.length));
+  const n = parseInt(t, 10);
+  return Math.min(3, Math.max(1, isNaN(n) ? 1 : n));
+}
+
+function parseDocFormat(text) {
+  const cards = [];
+  let chapter = '';
+  let cur = null;
+  const lines = text.split(/\r?\n/);
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) {
+      if (cur && cur.answer && !cur.answer.endsWith('\n')) cur.answer += '\n';
+      continue;
+    }
+    // 章节行：第4章信息系统规划
+    const mCh = line.match(/^第\s*(\d+)\s*章\s*(.*)$/);
+    if (mCh) {
+      if (cur) { cards.push(cur); cur = null; }
+      chapter = ('第' + mCh[1] + '章' + (mCh[2] ? ' ' + mCh[2] : '')).replace(/\s+/g, ' ').trim();
+      continue;
+    }
+    // 卡片行：001.★★问题 / 001.★问题 / 001.★★★问题
+    // 注意：有些条目"问题? 答：答案"写在同一行（如 004），在此处分割
+    const mCard = line.match(/^(\d{1,4})[.、．]\s*(★{1,3})\s*(.+)$/);
+    if (mCard) {
+      if (cur) cards.push(cur);
+      let q = mCard[3].trim();
+      let a = '';
+      const mDa = q.match(/^(.*?)[?？]\s*答[：:]\s*(.*)$/);
+      if (mDa) { q = mDa[1].trim() + '？'; a = mDa[2].trim() + '\n'; }
+      cur = { chapter: chapter, question: q, keywords: '', answer: a, stars: mCard[2].length };
+      continue;
+    }
+    // 小节标题（如 4.1.概述）：忽略
+    if (/^\d+(\.\d+)+[.．]?\S*$/.test(line) && !/\d+\s/.test(line)) continue;
+    if (!cur) continue;
+    if (/^答[：:]/.test(line)) {
+      cur.answer += line.replace(/^答[：:]\s*/, '') + '\n';
+    } else if (/^【记】/.test(line) || /^\[记\]/.test(line)) {
+      cur.keywords = line.replace(/^【记】/, '').replace(/^\[记\]/, '').trim();
+    } else if (cur.answer.length > 0) {
+      // 行内可能直接带【记】（如 011："4. 资源风险与优化  【记】世平管控分掉封釉"）
+      const mJi = line.match(/^(.*?)\s*【记】\s*(.*)$/);
+      if (mJi) {
+        if (mJi[1].trim()) cur.answer += mJi[1].trim() + '\n';
+        cur.keywords = mJi[2].trim();
+      } else {
+        cur.answer += line + '\n';
+      }
+    } else {
+      cur.question += line;
+    }
+  }
+  if (cur) cards.push(cur);
+  return cards;
+}
+
+function parseTabFormat(text) {
+  const cards = [];
+  const lines = text.split(/\r?\n/);
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    const parts = line.split(/\t|\|/).map(s => s.trim());
+    if (parts.length < 3) continue;
+    let chapter = '', q, k = '', a = '', stars = 1;
+    if (parts.length >= 5) { chapter = parts[0]; q = parts[1]; k = parts[2]; a = parts[3]; stars = parseStars(parts[4]); }
+    else if (parts.length === 4) { q = parts[0]; k = parts[1]; a = parts[2]; stars = parseStars(parts[3]); }
+    else { q = parts[0]; k = parts[1]; a = parts[2]; }
+    if (!q) continue;
+    cards.push({ chapter: chapter, question: q, keywords: k, answer: a, stars: stars });
+  }
+  return cards;
+}
+
+function parseImport(text) {
+  const t = String(text || '').trim();
+  if (!t) return [];
+  const looksLikeDoc = /^第\d+章/m.test(t) && /\d{1,4}[.、．]\s*★/.test(t);
+  return looksLikeDoc ? parseDocFormat(t) : parseTabFormat(t);
+}
+
+let pendingImport = [];
+
+function previewImport() {
+  const text = document.getElementById('importText').value;
+  pendingImport = parseImport(text);
+  const el = document.getElementById('importPreview');
+  const btn = document.getElementById('btnDoImport');
+  if (!pendingImport.length) {
+    el.innerHTML = '<div class="pv-empty">⚠️ 未解析到有效卡片，请检查粘贴内容格式</div>';
+    btn.disabled = true;
+  } else {
+    el.innerHTML = '<div class="pv-ok">✅ 解析到 ' + pendingImport.length + ' 张卡片：</div>'
+      + pendingImport.slice(0, 4).map((c, i) =>
+        '<div class="pv-item">' + (i + 1) + '. [' + escapeHtml(c.chapter || '未分章') + '] '
+        + '★'.repeat(c.stars) + ' ' + escapeHtml(c.question) + '</div>').join('')
+      + (pendingImport.length > 4 ? '<div class="pv-more">… 共 ' + pendingImport.length + ' 张</div>' : '');
+    btn.disabled = false;
+  }
+}
+
+function doImport() {
+  if (!pendingImport.length) return;
+  let added = 0, skipped = 0;
+  let nextId = 0;
+  for (const c of KNOWLEDGE_BASE) if (c.id > nextId) nextId = c.id;
+  nextId += 1;
+  for (const c of pendingImport) {
+    const dup = KNOWLEDGE_BASE.some(x => x.chapter === (c.chapter || '未分章') && x.question === c.question);
+    if (dup) { skipped++; continue; }
+    const card = {
+      id: nextId++,
+      chapter: c.chapter || '未分章',
+      question: c.question,
+      keywords: c.keywords || '',
+      answer: c.answer || '',
+      stars: Math.min(3, Math.max(1, c.stars || 1))
+    };
+    KNOWLEDGE_BASE.push(card);
+    extraCards.push(card);   // 持久化：刷新不丢，可随备份导出
+    added++;
+  }
+  saveExtraCards();
+  pendingImport = [];
+  document.getElementById('importText').value = '';
+  document.getElementById('importPreview').innerHTML = '';
+  document.getElementById('btnDoImport').disabled = true;
+  renderFilters();
+  refreshPool(true);
+  closeModal('modalData');
+  toast('✅ 导入完成：新增 ' + added + ' 张' + (skipped ? '，跳过重复 ' + skipped + ' 张' : ''));
+}
+
+/* =====================================================================
+ * 完整备份：导出/导入（含导入的卡片 + 自定义钩子 + 掌握进度）
+ * ===================================================================== */
+function exportProgress() {
+  const d = new Date();
+  const ds = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const payload = { mastery: mastery, hooks: hookOverrides, cards: extraCards };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '卡牌大师备份-' + ds + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  toast('📤 备份已导出（卡片+钩子+进度）');
+}
+
+/* 应用备份数据（返回 {n, cardsMerged}） */
+function applyBackup(data) {
+  let newMastery, newHooks = null, newCards = null;
+  // 新格式 { mastery, hooks, cards }；旧格式直接是 mastery 映射
+  if (data && typeof data === 'object' && !Array.isArray(data)
+      && data.mastery && typeof data.mastery === 'object' && !Array.isArray(data.mastery)) {
+    newMastery = data.mastery;
+    newHooks = (data.hooks && typeof data.hooks === 'object' && !Array.isArray(data.hooks)) ? data.hooks : null;
+    newCards = Array.isArray(data.cards) ? data.cards : null;
+  } else {
+    newMastery = data;
+  }
+  if (typeof newMastery !== 'object' || newMastery === null || Array.isArray(newMastery)) throw new Error('不是有效的备份文件');
+
+  // 1) 先合并导入的卡片（按 章节+问题 去重），这样后面的进度能映射到正确的卡
+  let cardsMerged = 0;
+  if (newCards) {
+    const seen = new Set(KNOWLEDGE_BASE.map(c => c.chapter + '\u0001' + c.question));
+    let nextId = 0;
+    for (const c of KNOWLEDGE_BASE) if (c.id > nextId) nextId = c.id;
+    nextId += 1;
+    for (const c of newCards) {
+      if (!c || typeof c !== 'object' || !c.question) continue;
+      const key = (c.chapter || '未分章') + '\u0001' + c.question;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const card = {
+        id: nextId++,
+        chapter: c.chapter || '未分章',
+        question: String(c.question),
+        keywords: String(c.keywords || ''),
+        answer: String(c.answer || ''),
+        stars: Math.min(3, Math.max(1, parseInt(c.stars) || 1))
+      };
+      KNOWLEDGE_BASE.push(card);
+      extraCards.push(card);
+      cardsMerged++;
+    }
+    if (cardsMerged) saveExtraCards();
+  }
+
+  // 2) 合并掌握进度：新格式按"章节+问题"内容映射（id 可能变化），旧格式按 id
+  let n = 0;
+  if (newCards) {
+    const valByKey = {};
+    for (const c of newCards) {
+      if (!c || !c.question) continue;
+      const key = (c.chapter || '未分章') + '\u0001' + c.question;
+      const v = newMastery[String(c.id)];
+      if (v !== undefined) valByKey[key] = v;
+    }
+    for (const c of KNOWLEDGE_BASE) {
+      const key = c.chapter + '\u0001' + c.question;
+      if (valByKey[key] !== undefined) {
+        mastery[c.id] = normalizeM(valByKey[key]);
+        n++;
+      }
+    }
+  } else {
+    for (const k of Object.keys(newMastery)) {
+      const id = Number(k);
+      if (!cardById(id)) continue;
+      mastery[id] = normalizeM(newMastery[k]);
+      n++;
+    }
+  }
+
+  // 3) 合并自定义钩子（新格式按"章节+问题"内容映射，旧格式按 id）
+  if (newHooks) {
+    if (newCards) {
+      const hookByKey = {};
+      for (const c of newCards) {
+        if (!c || !c.question) continue;
+        const key = (c.chapter || '未分章') + '\u0001' + c.question;
+        const v = newHooks[String(c.id)];
+        if (typeof v === 'string') hookByKey[key] = v;
+      }
+      const tmp = {};
+      for (const c of KNOWLEDGE_BASE) {
+        const key = c.chapter + '\u0001' + c.question;
+        if (hookByKey[key] !== undefined) tmp[c.id] = hookByKey[key];
+      }
+      hookOverrides = tmp;
+    } else {
+      const tmp = {};
+      for (const k of Object.keys(newHooks)) {
+        const id = Number(k);
+        if (!cardById(id)) continue;
+        if (typeof newHooks[k] === 'string') tmp[id] = newHooks[k];
+      }
+      hookOverrides = tmp;
+    }
+    saveHooks();
+  }
+  return { n: n, cardsMerged: cardsMerged };
+}
+
+function importProgressFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      const r = applyBackup(data);
+      saveMastery();
+      renderFilters();
+      refreshPool(false);
+      closeModal('modalData');
+      toast('✅ 备份导入成功' + (r.cardsMerged ? '：新增卡片 ' + r.cardsMerged + ' 张' : '') + '，进度已更新');
+    } catch (err) {
+      toast('❌ 导入失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* =====================================================================
+ * 重置全部进度（自定义确认弹窗）
+ * ===================================================================== */
+function resetAllConfirm() {
+  document.getElementById('confirmText').textContent = '确定要重置所有卡片的已掌握状态吗？薄弱记录、复习队列也会一并清空，此操作不可撤销。（自定义钩子不会被清除）';
+  document.getElementById('confirmYes').onclick = function () {
+    mastery = {};
+    saveMastery();
+    refreshPool(true);
+    closeModal('modalConfirm');
+    renderMasteredList();
+    toast('🔄 已重置全部进度');
+  };
+  openModal('modalConfirm');
+}
+
+/* =====================================================================
+ * 清除全部导入的卡片（内建卡片不受影响）
+ * ===================================================================== */
+function clearImportedConfirm() {
+  const n = extraCards.length;
+  if (!n) { toast('没有已导入的卡片'); return; }
+  document.getElementById('confirmText').textContent = '确定要清除全部 ' + n + ' 张导入的卡片吗？它们的掌握记录、自定义钩子也会一并删除（内建卡片不受影响）。此操作不可撤销。';
+  document.getElementById('confirmYes').onclick = function () {
+    const ids = new Set(extraCards.map(c => c.id));
+    extraCards = [];
+    saveExtraCards();
+    rebuildBase();
+    for (const id of ids) { delete mastery[id]; }
+    for (const id of ids) { delete hookOverrides[id]; }
+    saveMastery();
+    saveHooks();
+    refreshPool(true);
+    closeModal('modalConfirm');
+    renderMasteredList();
+    toast('🗑️ 已清除 ' + n + ' 张导入卡片');
+  };
+  openModal('modalConfirm');
+}
+
+/* =====================================================================
+ * 模态框 / 轻提示
+ * ===================================================================== */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeAllModals() {
+  const list = document.querySelectorAll('.modal-mask.open');
+  for (const m of list) m.classList.remove('open');
+}
+
+let toastTimer = null;
+function toast(msg) {
+  let el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+/* =====================================================================
+ * PWA 安装引导（beforeinstallprompt）
+ * 仅 HTTPS 托管 + 浏览器支持安装时触发；file:// 或已安装时不会出现。
+ * ===================================================================== */
+let deferredPrompt = null;
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function () {
+    deferredPrompt = null;
+    hideInstallBanner();
+  });
+}
+function hideInstallBanner() {
+  deferredPrompt = null;
+  document.getElementById('installBanner').classList.remove('show');
+}
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').classList.add('show');
+  });
+}
+
+/* =====================================================================
+ * 屏幕常亮（Wake Lock，背诵时屏幕不熄）
+ * 仅 HTTPS 下有效；file:// 或浏览器不支持时静默降级。
+ * ===================================================================== */
+let wakeLock = null;
+let wakeEnabled = false;
+try { wakeEnabled = localStorage.getItem('WakeLock') === '1'; } catch (e) {}
+function renderWakeBtn() {
+  const b = document.getElementById('btnWake');
+  if (!b) return;
+  b.textContent = wakeEnabled ? '🔆' : '🌙';
+  b.style.opacity = (typeof navigator !== 'undefined' && navigator.wakeLock) ? '1' : '.45';
+}
+async function applyWake() {
+  try {
+    if (wakeEnabled) {
+      if (typeof navigator === 'undefined' || !navigator.wakeLock) {
+        toast('屏幕常亮需 HTTPS 环境（安装后可用）');
+        wakeEnabled = false;
+        try { localStorage.setItem('WakeLock', '0'); } catch (e2) {}
+        renderWakeBtn();
+        return;
+      }
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', function () { wakeLock = null; });
+    } else if (wakeLock) {
+      wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (e) {
+    toast('屏幕常亮不可用');
+    wakeLock = null;
+  }
+}
+function toggleWake() {
+  wakeEnabled = !wakeEnabled;
+  try { localStorage.setItem('WakeLock', wakeEnabled ? '1' : '0'); } catch (e) {}
+  renderWakeBtn();
+  applyWake();
+  toast(wakeEnabled ? '🔆 屏幕常亮已开启' : '🌙 屏幕常亮已关闭');
+}
+document.addEventListener('visibilitychange', function () {
+  // 切回前台时若开启常亮则重新请求（系统会在页面不可见时自动释放）
+  if (wakeEnabled && document.visibilityState === 'visible') applyWake();
+});
+
+/* =====================================================================
+ * 事件
+ * ===================================================================== */
+function onChapterChange(v)  { state.chapter = v; refreshPool(true); }
+function onStarsChange(v)    { state.stars = v; refreshPool(true); }
+function onMasteredChange(b) { state.showMastered = b; refreshPool(true); }
+function onWeakChange(b)     { state.weakOnly = b; refreshPool(true); }
+function onRandomChange(b)   { state.randomOrder = b; refreshPool(true); }
+function onSearch(v)         { state.search = v.trim(); refreshPool(true); }
+
+document.addEventListener('keydown', function (e) {
+  // Esc：总是关闭弹窗
+  if (e.key === 'Escape') { closeAllModals(); return; }
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') return;
+  if (document.querySelector('.modal-mask.open')) return;
+  if (!state.pool.length) return;
+
+  // 浏览模式：方向键 / 空格 / 回车 = 翻卡
+  if (state.mode === 'browse') {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextCard(); }
+    else if (e.key === 'ArrowLeft') prevCard();
+    return;
+  }
+  // 背诵模式：空格/回车 = 下一步（第3步默认视为还原正确），1 = 没还原出来，2 = 还原正确
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    if (state.step === 1) startRecall();
+    else if (state.step === 2) showAnswer();
+    else markRight();
+  } else if (e.key === '1') {
+    if (state.step === 3) markWrong();
+  } else if (e.key === '2') {
+    if (state.step === 3) markRight();
+  }
+});
+
+/* =====================================================================
+ * 初始化
+ * ===================================================================== */
+function init() {
+  extraCards = loadExtraCards();
+  rebuildBase();
+  mastery = loadMastery();
+  hookOverrides = loadHooks();
+  renderFilters();
+  renderWakeBtn();
+  if (wakeEnabled) applyWake();
+  refreshPool(true);
+}
+init();
+</script>
+</body>
+</html>
