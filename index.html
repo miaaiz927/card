@@ -120,8 +120,8 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   flex-direction: column;
   gap: clamp(10px, 1.8vw, 14px);
 }
-.app-title { font-size: clamp(15px, 2.5vw, 19px); font-weight: 700; letter-spacing: 1px; }
-.app-title .sub { font-size: clamp(11px, 1.7vw, 13px); font-weight: 400; color: var(--muted); margin-left: 8px; }
+.app-title { font-size: clamp(13px, 2vw, 16px); font-weight: 700; letter-spacing: 1px; }
+.app-title .sub { font-size: clamp(10px, 1.6vw, 12px); font-weight: 400; color: var(--muted); margin-left: 6px; }
 
 /* ============ 顶部：双进度条 + 右上角入口 ============ */
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
@@ -132,7 +132,7 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
 .p-fill.gold { background: linear-gradient(90deg, #F5C542, #FFB300); }
 .p-fill.blue { background: linear-gradient(90deg, #64B5F6, #42A5F5); }
 .p-num { min-width: 4.2em; text-align: right; font-variant-numeric: tabular-nums; }
-.top-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.top-actions { display: flex; flex-direction: row; align-items: center; gap: 10px; flex-shrink: 0; }
 .top-actions button {
   background: none; border: none; color: var(--blue);
   font-size: clamp(12px, 2vw, 14px); cursor: pointer; padding: 4px 2px; text-align: right;
@@ -164,6 +164,18 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
 }
 .filters label.disabled { opacity: .4; pointer-events: none; }
 .filters input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold); }
+
+/* 折叠筛选：平时一行，点开展开 */
+.filter-row { display: flex; gap: 8px; align-items: center; flex: 1 1 100%; }
+.filter-toggle {
+  flex: 1; min-height: 40px; border-radius: 8px; border: 1px solid var(--border);
+  background: #2A2A2A; color: var(--text); font-size: clamp(12px, 2vw, 14px); cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 12px;
+  text-align: left;
+}
+.filter-toggle .f-summary { color: var(--gold); font-size: clamp(11px, 1.8vw, 13px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filter-detail { display: none; flex-wrap: wrap; gap: 8px; align-items: center; flex: 1 1 100%; }
+.filter-detail.open { display: flex; }
 
 /* ============ 卡片主体 ============ */
 .card-area { flex: 1; display: flex; flex-direction: column; min-height: 0; }
@@ -224,8 +236,51 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   padding: clamp(14px, 2.5vw, 20px);
   font-size: clamp(14px, 2.3vw, 16px); line-height: 1.75;
   white-space: pre-wrap; word-break: break-word;
-  max-height: 42vh; overflow-y: auto;
+  max-height: 60vh; overflow-y: auto;
   animation: fadeIn .35s ease;
+}
+
+/* ============ 阅读器（沉浸阅读 + 遮字回忆） ============ */
+.card-area.scrollable { overflow-y: auto; overscroll-behavior: contain; }
+.reader-header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg); padding: 6px 0 8px; flex-wrap: wrap;
+}
+.reader-header select {
+  background: #2A2A2A; color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 8px; font-size: clamp(12px, 1.9vw, 14px);
+  min-height: 36px; outline: none; max-width: 11em;
+}
+.reader-header select option { background: #2A2A2A; color: var(--text); }
+.reader-count {
+  margin-left: auto; color: var(--muted); font-size: clamp(11px, 1.8vw, 13px);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.btn-back {
+  background: var(--gold); color: #1a1a1a; border: none; border-radius: 8px;
+  padding: 8px 12px; font-size: clamp(12px, 2vw, 14px); font-weight: 600; cursor: pointer;
+  min-height: 36px; white-space: nowrap;
+}
+.read-card {
+  padding: clamp(10px, 2vw, 14px) 2px clamp(14px, 2.5vw, 20px);
+  border-bottom: 1px dashed #333;
+}
+.read-card-head {
+  display: flex; justify-content: space-between; gap: 8px;
+  color: var(--muted); font-size: clamp(11px, 1.7vw, 12px); margin-bottom: 4px;
+}
+.read-q { font-size: clamp(15px, 2.5vw, 19px); font-weight: 700; line-height: 1.6; margin-bottom: 6px; }
+.read-k { color: var(--gold); font-size: clamp(13px, 2.1vw, 15px); line-height: 1.6; margin-bottom: 8px; }
+.read-a {
+  font-size: clamp(14px, 2.3vw, 16px); line-height: 2; color: #C9C9C9;
+  white-space: pre-wrap; word-break: break-word;
+}
+.ch { border-radius: 2px; cursor: pointer; }
+.ch.masked { color: transparent; background: #3A3A3A; }
+.read-tip {
+  color: var(--muted); font-size: clamp(11px, 1.8vw, 13px); text-align: center;
+  padding: 8px 0 14px;
 }
 
 /* ============ 底部操作区（大触摸区域 ≥52px） ============ */
@@ -299,6 +354,8 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
 .pv-more { font-size: clamp(12px, 1.9vw, 13px); color: var(--muted); }
 
 .confirm-text { font-size: clamp(14px, 2.2vw, 16px); line-height: 1.6; }
+.ed-field { display: flex; flex-direction: column; gap: 4px; }
+.ed-label { font-size: clamp(12px, 1.9vw, 14px); color: var(--muted); }
 
 /* ============ 轻提示 toast ============ */
 #toast {
@@ -357,23 +414,30 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
     </div>
   </header>
 
-  <!-- 模式切换 + 筛选栏 -->
+  <!-- 模式切换 + 筛选栏（折叠式） -->
   <section class="filters">
     <div class="mode-switch">
       <button id="btnModeStudy" class="active" onclick="setMode('study')">🎯 背诵</button>
-      <button id="btnModeBrowse" onclick="setMode('browse')">📖 浏览</button>
+      <button id="btnModeRead" onclick="setMode('read')">📖 阅读</button>
     </div>
-    <select id="filterChapter" onchange="onChapterChange(this.value)"></select>
-    <select id="filterStars" onchange="onStarsChange(this.value)">
-      <option value="全部">全部星级</option>
-      <option value="1">★ 1星</option>
-      <option value="2">★★ 2星</option>
-      <option value="3">★★★ 3星</option>
-    </select>
-    <label id="lblMastered"><input type="checkbox" id="chkMastered" onchange="onMasteredChange(this.checked)"> 显示已掌握</label>
-    <label id="lblWeak"><input type="checkbox" id="chkWeak" onchange="onWeakChange(this.checked)"> 只看薄弱</label>
-    <label><input type="checkbox" id="chkRandom" onchange="onRandomChange(this.checked)"> 🔀 随机顺序</label>
-    <input type="search" id="searchBox" placeholder="🔍 搜索问题 / 钩子 / 原文…" oninput="onSearch(this.value)">
+    <div class="filter-row">
+      <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
+        <span>🔍 筛选</span><span class="f-summary" id="filterSummary"></span>
+      </button>
+    </div>
+    <div class="filter-detail" id="filterDetail">
+      <select id="filterChapter" onchange="onChapterChange(this.value)"></select>
+      <select id="filterStars" onchange="onStarsChange(this.value)">
+        <option value="全部">全部星级</option>
+        <option value="1">★ 1星</option>
+        <option value="2">★★ 2星</option>
+        <option value="3">★★★ 3星</option>
+      </select>
+      <label id="lblMastered"><input type="checkbox" id="chkMastered" onchange="onMasteredChange(this.checked)"> 显示已掌握</label>
+      <label id="lblWeak"><input type="checkbox" id="chkWeak" onchange="onWeakChange(this.checked)"> 只看薄弱</label>
+      <label><input type="checkbox" id="chkRandom" onchange="onRandomChange(this.checked)"> 🔀 随机顺序</label>
+      <input type="search" id="searchBox" placeholder="🔍 搜索问题 / 钩子 / 原文…" oninput="onSearch(this.value)">
+    </div>
   </section>
 
   <!-- 卡片主体 -->
@@ -392,17 +456,21 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   </div>
 </div>
 
-<!-- 钩子编辑弹窗 -->
-<div class="modal-mask" id="modalHook" onclick="if(event.target===this)closeModal('modalHook')">
-  <div class="modal modal-sm">
-    <h3>🪝 编辑记忆钩子</h3>
-    <div class="hint">给自己编一个专属钩子（口诀 / 关键词 / 画面），自己加工过的记得最牢。留空 = 不显示钩子。</div>
-    <textarea id="hookText" rows="3" placeholder="输入你的钩子…"></textarea>
-    <div class="btn-row">
-      <button class="btn-gold" onclick="saveHook()">✅ 保存</button>
-      <button onclick="resetHook()">↩️ 恢复老师钩子</button>
+<!-- 编辑卡片弹窗（问题/钩子/答案，自定义优先显示，可恢复原文） -->
+<div class="modal-mask" id="modalEdit" onclick="if(event.target===this)closeModal('modalEdit')">
+  <div class="modal">
+    <h3>✏️ 编辑卡片</h3>
+    <div class="hint">修改后自定义内容优先显示；点"恢复原文"可还原老师的内容。钩子留空 = 不显示钩子。</div>
+    <div class="modal-body">
+      <div class="ed-field"><div class="ed-label">❓ 问题</div><textarea id="editQ" rows="2"></textarea></div>
+      <div class="ed-field"><div class="ed-label">🪝 钩子（记忆口诀）</div><textarea id="editK" rows="1"></textarea></div>
+      <div class="ed-field"><div class="ed-label">📝 答案（完整原文）</div><textarea id="editA" rows="6"></textarea></div>
     </div>
-    <button class="m-close" onclick="closeModal('modalHook')">取消</button>
+    <div class="btn-row">
+      <button class="btn-gold" onclick="saveEdit()">✅ 保存</button>
+      <button onclick="resetEdit()">↩️ 恢复原文</button>
+    </div>
+    <button class="m-close" onclick="closeModal('modalEdit')">取消</button>
   </div>
 </div>
 
@@ -547,23 +615,26 @@ const MASTERY_REQUIRED = 3;   // 需在 N 个不同日期各还原正确一次�
  * ===================================================================== */
 const STORE_KEY = 'CardMasteryData';
 const HOOK_KEY = 'CardHookOverrides';
+const EDIT_KEY = 'CardFieldOverrides';
 
 const state = {
-  mode: 'study',      // 'study' 背诵 | 'browse' 浏览
+  mode: 'study',      // 'study' 背诵 | 'read' 阅读（沉浸阅读器）
   chapter: '全部',
   stars: '全部',
   showMastered: false,
   weakOnly: false,
   randomOrder: false,
   search: '',
+  filtersOpen: false, // 折叠筛选是否展开
   pool: [],
   index: 0,
   step: 1,            // 1 初始(问题) | 2 还原模式(遮罩) | 3 核对自评(显示原文)
   hookVisible: false  // 钩子默认隐藏，点击"看钩子提示"展开
 };
 
-let mastery = {};      // { id: { mastered, weak, wrongCount, review, correctDates:[] } }
+let mastery = {};       // { id: { mastered, weak, wrongCount, review, correctDates:[] } }
 let hookOverrides = {}; // { id: '自定义钩子' } 自定义钩子优先于老师钩子
+let fieldOverrides = {}; // { id: { question?, answer? } } 自定义问题/答案优先于原文
 
 function normalizeM(v) {
   return (v && typeof v === 'object')
@@ -601,6 +672,27 @@ function saveHooks() {
   try { localStorage.setItem(HOOK_KEY, JSON.stringify(hookOverrides)); }
   catch (e) { /* 静默降级 */ }
 }
+function loadEdits() {
+  try { return JSON.parse(localStorage.getItem(EDIT_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveEdits() {
+  try { localStorage.setItem(EDIT_KEY, JSON.stringify(fieldOverrides)); }
+  catch (e) { /* 静默降级 */ }
+}
+/* 自定义优先的取值：问题/钩子/答案 */
+function getQuestion(card) {
+  const o = fieldOverrides[card.id];
+  return (o && typeof o.question === 'string') ? o.question : card.question;
+}
+function getAnswer(card) {
+  const o = fieldOverrides[card.id];
+  return (o && typeof o.answer === 'string') ? o.answer : card.answer;
+}
+function getKeyword(card) {
+  const custom = hookOverrides[card.id];
+  return (custom !== undefined) ? custom : card.keywords;
+}
 function cardById(id) { return KNOWLEDGE_BASE.find(c => c.id === id); }
 function dateStr() {
   const d = new Date();
@@ -615,7 +707,7 @@ function matchesFilter(c) {
   if (state.stars !== '全部' && c.stars !== Number(state.stars)) return false;
   if (state.search) {
     const s = state.search.toLowerCase();
-    const hit = (c.question + ' ' + c.keywords + ' ' + c.answer).toLowerCase().indexOf(s) !== -1;
+    const hit = (getQuestion(c) + ' ' + getKeyword(c) + ' ' + getAnswer(c)).toLowerCase().indexOf(s) !== -1;
     if (!hit) return false;
   }
   return true;
@@ -637,11 +729,7 @@ function cat(c) {   // 分类：0 待背 | 1 复习中 | 2 已掌握(非复习)
 }
 
 function buildPool() {
-  // 浏览模式：全览，忽略"显示已掌握/只看薄弱"，按 id 顺序（可选随机）
-  if (state.mode === 'browse') {
-    const l = KNOWLEDGE_BASE.filter(matchesFilter).sort((a, b) => a.id - b.id);
-    return state.randomOrder ? shuffle(l) : l;
-  }
+  // 阅读模式不走池（阅读器自己渲染），此处仅背诵模式
   const list = KNOWLEDGE_BASE.filter(c => {
     if (!matchesFilter(c)) return false;
     if (state.weakOnly && !(mastery[c.id] && mastery[c.id].weak)) return false;
@@ -702,6 +790,23 @@ function renderFilters() {
   sel.innerHTML = '<option value="全部">全部章节</option>'
     + chapters.map(ch => '<option value="' + escapeHtml(ch) + '">' + escapeHtml(ch) + '</option>').join('');
   sel.value = state.chapter;
+  // 折叠按钮摘要
+  const sum = document.getElementById('filterSummary');
+  if (sum) {
+    const parts = [];
+    parts.push(state.chapter === '全部' ? '全部章节' : state.chapter.replace(/^第(\d+)章\s*/, '第$1章'));
+    parts.push(state.stars === '全部' ? '全部星级' : '★'.repeat(Number(state.stars)));
+    if (state.showMastered) parts.push('含已掌握');
+    if (state.weakOnly) parts.push('只看薄弱');
+    if (state.randomOrder) parts.push('随机');
+    if (state.search) parts.push('“' + state.search + '”');
+    sum.textContent = parts.join(' · ');
+  }
+}
+function toggleFilters() {
+  state.filtersOpen = !state.filtersOpen;
+  const d = document.getElementById('filterDetail');
+  d.classList.toggle('open', state.filtersOpen);
 }
 
 function escapeHtml(s) {
@@ -711,16 +816,16 @@ function escapeHtml(s) {
 /* 钩子块：自定义钩子优先，其次老师钩子；空则显示占位+添加按钮 */
 function hookBlock(card) {
   const custom = hookOverrides[card.id];
-  const kw = (custom !== undefined) ? custom : card.keywords;
+  const kw = getKeyword(card);
   const isCustom = (custom !== undefined);
   if (!kw) {
     return '<div class="k-block"><div class="k-label">🪝 记忆钩子</div>'
       + '<div class="k-text hook-empty">（暂无钩子，可自己添加）</div>'
-      + '<button class="hook-edit" onclick="openHookEditor(' + card.id + ')">✏️ 添加钩子</button></div>';
+      + '<button class="hook-edit" onclick="openEditEditor(' + card.id + ')">✏️ 添加钩子</button></div>';
   }
   return '<div class="k-block"><div class="k-label">🪝 记忆钩子' + (isCustom ? ' <span class="custom-tag">自定义</span>' : '') + '</div>'
     + '<div class="k-text">“' + escapeHtml(kw) + '”</div>'
-    + '<button class="hook-edit" onclick="openHookEditor(' + card.id + ')">✏️ 改钩子</button></div>';
+    + '<button class="hook-edit" onclick="openEditEditor(' + card.id + ')">✏️ 改钩子</button></div>';
 }
 
 function renderCard() {
@@ -731,26 +836,13 @@ function renderCard() {
   const isReview = !!(mastery[card.id] && mastery[card.id].review);
   const starsHtml = '★'.repeat(card.stars) + '☆'.repeat(3 - card.stars);
 
-  if (state.mode === 'browse') {
-    // 浏览模式：问题 + 钩子 + 原文 全部展开
-    v.innerHTML =
-      '<div class="card">'
-      + '<div class="card-head"><span class="chapter-tag">📖 ' + escapeHtml(card.chapter) + '</span><span class="stars">' + starsHtml + '</span></div>'
-      + '<div class="q-block"><div class="q-label">❓ 问题</div><div class="q-text">' + escapeHtml(card.question) + '</div></div>'
-      + hookBlock(card)
-      + '<div class="answer-zone">' + escapeHtml(card.answer) + '</div>'
-      + '<div class="card-foot"><span>📄 ' + (state.index + 1) + ' / ' + state.pool.length + '</span></div>'
-      + '</div>';
-    return;
-  }
-
   // 背诵模式：三步状态机
   let zoneHtml = '';
   if (state.step === 2) {
     zoneHtml = '<div class="recall-zone"><div class="arrow">⬇️</div><div><b>你的还原区</b></div><div>在心里默念 / 纸上默写，先不看书</div></div>';
   } else if (state.step === 3) {
     zoneHtml = '<div class="check-tip">💡 逐条对照：确认每一点都还原出来，再点自评</div>'
-      + '<div class="answer-zone">' + escapeHtml(card.answer) + '</div>';
+      + '<div class="answer-zone">' + escapeHtml(getAnswer(card)) + '</div>';
   }
 
   // 钩子：状态①默认隐藏（点击展开；无钩子则显示"添加钩子"）；②③始终显示
@@ -759,10 +851,10 @@ function renderCard() {
     if (state.hookVisible) {
       hookHtml = hookBlock(card);
     } else {
-      const hasHook = !!(card.keywords || hookOverrides[card.id]);
+      const hasHook = !!getKeyword(card);
       hookHtml = hasHook
         ? '<button class="hook-btn" onclick="toggleHook()">🪝 看钩子提示</button>'
-        : '<button class="hook-btn" onclick="openHookEditor(' + card.id + ')">✏️ 添加钩子</button>';
+        : '<button class="hook-btn" onclick="openEditEditor(' + card.id + ')">✏️ 添加钩子</button>';
     }
   } else {
     hookHtml = hookBlock(card);
@@ -776,7 +868,8 @@ function renderCard() {
   v.innerHTML =
     '<div class="card' + (mastered ? ' mastered' : '') + '">'
     + '<div class="card-head"><span class="chapter-tag">📖 ' + escapeHtml(card.chapter) + '</span><span class="stars">' + starsHtml + '</span></div>'
-    + '<div class="q-block"><div class="q-label">❓ 问题</div><div class="q-text">' + escapeHtml(card.question) + '</div></div>'
+    + '<div class="q-block"><div class="q-label" style="display:flex;justify-content:space-between;align-items:center"><span>❓ 问题</span><button class="hook-edit" style="margin:0" onclick="openEditEditor(' + card.id + ')">✏️ 编辑</button></div>'
+    + '<div class="q-text">' + escapeHtml(getQuestion(card)) + '</div></div>'
     + hookHtml
     + zoneHtml
     + '<div class="card-foot">' + badge + '<span>本范围剩余 ' + state.pool.length + ' 张</span></div>'
@@ -786,11 +879,6 @@ function renderCard() {
 function renderActionBar() {
   const bar = document.getElementById('actionBar');
   if (!state.pool.length) { bar.innerHTML = ''; return; }
-  if (state.mode === 'browse') {
-    bar.innerHTML = '<button class="btn-ghost" onclick="prevCard()">◀ 上一张</button>'
-      + '<button class="btn-primary" onclick="nextCard()">▶ 下一张</button>';
-    return;
-  }
   if (state.step === 1) {
     bar.innerHTML = '<button class="btn-primary" onclick="startRecall()">📝 开始还原</button>';
   } else if (state.step === 2) {
@@ -802,13 +890,6 @@ function renderActionBar() {
 }
 
 function emptyHTML() {
-  if (state.mode === 'browse') {
-    return '<div class="empty-state">'
-      + '<div class="empty-emoji">😶</div>'
-      + '<div class="empty-title">没有匹配的卡片</div>'
-      + '<div class="empty-sub">试试调整章节 / 星级筛选，或清除搜索词</div>'
-      + '</div>';
-  }
   const anyMatch = KNOWLEDGE_BASE.some(c =>
     matchesFilter(c) && (!state.weakOnly || (mastery[c.id] && mastery[c.id].weak)));
   if (anyMatch) {
@@ -834,15 +915,103 @@ function emptyHTML() {
  * ===================================================================== */
 function setMode(m) {
   state.mode = m;
+  const area = document.getElementById('cardView');
   document.getElementById('btnModeStudy').classList.toggle('active', m === 'study');
-  document.getElementById('btnModeBrowse').classList.toggle('active', m === 'browse');
-  const browse = (m === 'browse');
-  document.getElementById('chkMastered').disabled = browse;
-  document.getElementById('chkWeak').disabled = browse;
-  document.getElementById('lblMastered').classList.toggle('disabled', browse);
-  document.getElementById('lblWeak').classList.toggle('disabled', browse);
-  refreshPool(true);
+  document.getElementById('btnModeRead').classList.toggle('active', m === 'read');
+  document.getElementById('btnWake').style.display = (m === 'study') ? '' : 'none';
+  if (m === 'read') {
+    area.classList.add('scrollable');
+    renderRead();
+    document.getElementById('actionBar').innerHTML = '';
+  } else {
+    area.classList.remove('scrollable');
+    refreshPool(true);
+  }
 }
+
+/* =====================================================================
+ * 阅读器（沉浸阅读 + 点字遮罩回忆）
+ * 只保留：返回背诵 / 章节 / 星级 / 位置计数。正文流式滚动，点击任意字变 ○，再点恢复。
+ * ===================================================================== */
+function readList() {
+  return KNOWLEDGE_BASE.filter(c => {
+    if (state.chapter !== '全部' && c.chapter !== state.chapter) return false;
+    if (state.stars !== '全部' && c.stars !== Number(state.stars)) return false;
+    return true;
+  }).sort((a, b) => a.id - b.id);
+}
+
+function charSpans(text) {
+  let out = '';
+  for (const ch of String(text)) {
+    out += '<span class="ch" data-char="' + escapeHtml(ch) + '">' + escapeHtml(ch) + '</span>';
+  }
+  return out;
+}
+
+function renderRead() {
+  const v = document.getElementById('cardView');
+  const list = readList();
+  if (!list.length) {
+    v.innerHTML = '<div class="empty-state"><div class="empty-emoji">😶</div>'
+      + '<div class="empty-title">没有匹配的卡片</div>'
+      + '<div class="empty-sub">试试调整章节 / 星级</div></div>';
+    return;
+  }
+  const chapters = [...new Set(KNOWLEDGE_BASE.map(c => c.chapter))];
+  let html = '<div class="reader-header">'
+    + '<button class="btn-back" onclick="setMode(\'study\')">← 背诵</button>'
+    + '<select id="readChapter" onchange="onReadChapter(this.value)">'
+    + '<option value="全部">全部章节</option>'
+    + chapters.map(ch => '<option value="' + escapeHtml(ch) + '"' + (state.chapter === ch ? ' selected' : '') + '>' + escapeHtml(ch) + '</option>').join('')
+    + '</select>'
+    + '<select id="readStars" onchange="onReadStars(this.value)">'
+    + '<option value="全部"' + (state.stars === '全部' ? ' selected' : '') + '>全部星级</option>'
+    + '<option value="1"' + (state.stars === '1' ? ' selected' : '') + '>★ 1星</option>'
+    + '<option value="2"' + (state.stars === '2' ? ' selected' : '') + '>★★ 2星</option>'
+    + '<option value="3"' + (state.stars === '3' ? ' selected' : '') + '>★★★ 3星</option>'
+    + '</select>'
+    + '<span class="reader-count" id="readerCount">1/' + list.length + '</span>'
+    + '</div>'
+    + '<div class="read-tip">💡 点击正文任意字 → 变成 ○ 遮住自测；再点恢复。只遮答案，不影响进度。</div>';
+  list.forEach(function (c, i) {
+    const kw = getKeyword(c);
+    html += '<div class="read-card" data-i="' + i + '">'
+      + '<div class="read-card-head"><span>📖 ' + escapeHtml(c.chapter) + '</span><span>' + '★'.repeat(c.stars) + '☆'.repeat(3 - c.stars) + '</span></div>'
+      + '<div class="read-q">' + escapeHtml(getQuestion(c)) + '</div>'
+      + (kw ? '<div class="read-k">🪝 ' + escapeHtml(kw) + '</div>' : '')
+      + '<div class="read-a">' + charSpans(getAnswer(c)) + '</div>'
+      + '</div>';
+  });
+  v.innerHTML = html;
+  attachReadScroll();
+}
+
+/* 滚动时更新顶部"第 x/n 张" */
+let readScrollTimer = null;
+function attachReadScroll() {
+  const area = document.getElementById('cardView');
+  if (readScrollTimer) { clearInterval(readScrollTimer); readScrollTimer = null; }
+  const update = function () {
+    const count = document.getElementById('readerCount');
+    const cards = area.querySelectorAll('.read-card');
+    if (!count || !cards.length) return;
+    const top = area.scrollTop + 60;
+    let cur = 0;
+    for (let i = 0; i < cards.length; i++) {
+      if (cards[i].offsetTop <= top) cur = i;
+      else break;
+    }
+    count.textContent = (cur + 1) + '/' + cards.length;
+  };
+  area.addEventListener('scroll', function () {
+    if (readScrollTimer) return;
+    readScrollTimer = setTimeout(function () { readScrollTimer = null; update(); }, 120);
+  });
+  update();
+}
+function onReadChapter(v) { state.chapter = v; renderFilters(); renderRead(); }
+function onReadStars(v)   { state.stars = v; renderFilters(); renderRead(); }
 
 /* =====================================================================
  * 三步递进状态机操作
@@ -939,35 +1108,55 @@ function nextCard() {
 }
 
 /* =====================================================================
- * 钩子编辑（自定义钩子优先，随进度导出/导入同步）
+ * 编辑卡片（问题/钩子/答案，自定义优先，随备份导出/导入同步）
  * ===================================================================== */
-let editingHookId = null;
+let editingCardId = null;
 
-function openHookEditor(id) {
-  editingHookId = id;
+function openEditEditor(id) {
+  editingCardId = id;
   const card = cardById(id);
-  const custom = hookOverrides[id];
-  const cur = (custom !== undefined) ? custom : (card ? (card.keywords || '') : '');
-  document.getElementById('hookText').value = cur;
-  openModal('modalHook');
+  if (!card) return;
+  document.getElementById('editQ').value = getQuestion(card);
+  document.getElementById('editK').value = getKeyword(card);
+  document.getElementById('editA').value = getAnswer(card);
+  openModal('modalEdit');
 }
-function saveHook() {
-  if (editingHookId == null) return;
-  hookOverrides[editingHookId] = document.getElementById('hookText').value.trim();
+function saveEdit() {
+  if (editingCardId == null) return;
+  const id = editingCardId;
+  const card = cardById(id);
+  if (!card) return;
+  const q = document.getElementById('editQ').value.trim();
+  const k = document.getElementById('editK').value.trim();
+  const a = document.getElementById('editA').value.replace(/^\n+|\n+$/g, '');
+  // 与原文一致则清除覆盖（保持干净）；否则保存
+  const o = fieldOverrides[id] || {};
+  if (q === card.question) delete o.question; else o.question = q;
+  if (a === card.answer) delete o.answer; else o.answer = a;
+  if (Object.keys(o).length) fieldOverrides[id] = o; else delete fieldOverrides[id];
+  if (k === card.keywords) delete hookOverrides[id]; else hookOverrides[id] = k;
+  saveEdits();
   saveHooks();
-  editingHookId = null;
-  closeModal('modalHook');
+  editingCardId = null;
+  closeModal('modalEdit');
   renderCard();
-  toast('✏️ 钩子已保存');
+  toast('✏️ 已保存');
 }
-function resetHook() {
-  if (editingHookId == null) return;
-  delete hookOverrides[editingHookId];
+function resetEdit() {
+  if (editingCardId == null) return;
+  const id = editingCardId;
+  delete fieldOverrides[id];
+  delete hookOverrides[id];
+  saveEdits();
   saveHooks();
-  editingHookId = null;
-  closeModal('modalHook');
-  renderCard();
-  toast('↩️ 已恢复老师钩子');
+  // 重新填入原文
+  const card = cardById(id);
+  if (card) {
+    document.getElementById('editQ').value = card.question;
+    document.getElementById('editK').value = card.keywords;
+    document.getElementById('editA').value = card.answer;
+  }
+  toast('↩️ 已恢复原文');
 }
 
 /* =====================================================================
@@ -1164,7 +1353,7 @@ function doImport() {
 function exportProgress() {
   const d = new Date();
   const ds = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-  const payload = { mastery: mastery, hooks: hookOverrides, cards: extraCards };
+  const payload = { mastery: mastery, hooks: hookOverrides, edits: fieldOverrides, cards: extraCards };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1174,17 +1363,18 @@ function exportProgress() {
   a.click();
   document.body.removeChild(a);
   setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-  toast('📤 备份已导出（卡片+钩子+进度）');
+  toast('📤 备份已导出（卡片+钩子+编辑+进度）');
 }
 
 /* 应用备份数据（返回 {n, cardsMerged}） */
 function applyBackup(data) {
-  let newMastery, newHooks = null, newCards = null;
-  // 新格式 { mastery, hooks, cards }；旧格式直接是 mastery 映射
+  let newMastery, newHooks = null, newCards = null, newEdits = null;
+  // 新格式 { mastery, hooks, edits, cards }；旧格式直接是 mastery 映射
   if (data && typeof data === 'object' && !Array.isArray(data)
       && data.mastery && typeof data.mastery === 'object' && !Array.isArray(data.mastery)) {
     newMastery = data.mastery;
     newHooks = (data.hooks && typeof data.hooks === 'object' && !Array.isArray(data.hooks)) ? data.hooks : null;
+    newEdits = (data.edits && typeof data.edits === 'object' && !Array.isArray(data.edits)) ? data.edits : null;
     newCards = Array.isArray(data.cards) ? data.cards : null;
   } else {
     newMastery = data;
@@ -1271,6 +1461,41 @@ function applyBackup(data) {
     }
     saveHooks();
   }
+
+  // 4) 合并自定义问题/答案编辑（同样按内容映射）
+  if (newEdits) {
+    if (newCards) {
+      const editByKey = {};
+      for (const c of newCards) {
+        if (!c || !c.question) continue;
+        const key = (c.chapter || '未分章') + '\u0001' + c.question;
+        const v = newEdits[String(c.id)];
+        if (v && typeof v === 'object') editByKey[key] = v;
+      }
+      const tmp = {};
+      for (const c of KNOWLEDGE_BASE) {
+        const key = c.chapter + '\u0001' + c.question;
+        if (editByKey[key] !== undefined) tmp[c.id] = {
+          question: typeof editByKey[key].question === 'string' ? editByKey[key].question : undefined,
+          answer: typeof editByKey[key].answer === 'string' ? editByKey[key].answer : undefined
+        };
+      }
+      fieldOverrides = tmp;
+    } else {
+      const tmp = {};
+      for (const k of Object.keys(newEdits)) {
+        const id = Number(k);
+        if (!cardById(id)) continue;
+        const v = newEdits[k];
+        if (v && typeof v === 'object') tmp[id] = {
+          question: typeof v.question === 'string' ? v.question : undefined,
+          answer: typeof v.answer === 'string' ? v.answer : undefined
+        };
+      }
+      fieldOverrides = tmp;
+    }
+    saveEdits();
+  }
   return { n: n, cardsMerged: cardsMerged };
 }
 
@@ -1315,7 +1540,7 @@ function resetAllConfirm() {
 function clearImportedConfirm() {
   const n = extraCards.length;
   if (!n) { toast('没有已导入的卡片'); return; }
-  document.getElementById('confirmText').textContent = '确定要清除全部 ' + n + ' 张导入的卡片吗？它们的掌握记录、自定义钩子也会一并删除（内建卡片不受影响）。此操作不可撤销。';
+  document.getElementById('confirmText').textContent = '确定要清除全部 ' + n + ' 张导入的卡片吗？它们的掌握记录、自定义钩子、编辑内容也会一并删除（内建卡片不受影响）。此操作不可撤销。';
   document.getElementById('confirmYes').onclick = function () {
     const ids = new Set(extraCards.map(c => c.id));
     extraCards = [];
@@ -1323,8 +1548,10 @@ function clearImportedConfirm() {
     rebuildBase();
     for (const id of ids) { delete mastery[id]; }
     for (const id of ids) { delete hookOverrides[id]; }
+    for (const id of ids) { delete fieldOverrides[id]; }
     saveMastery();
     saveHooks();
+    saveEdits();
     refreshPool(true);
     closeModal('modalConfirm');
     renderMasteredList();
@@ -1426,12 +1653,28 @@ document.addEventListener('visibilitychange', function () {
 /* =====================================================================
  * 事件
  * ===================================================================== */
-function onChapterChange(v)  { state.chapter = v; refreshPool(true); }
-function onStarsChange(v)    { state.stars = v; refreshPool(true); }
-function onMasteredChange(b) { state.showMastered = b; refreshPool(true); }
-function onWeakChange(b)     { state.weakOnly = b; refreshPool(true); }
-function onRandomChange(b)   { state.randomOrder = b; refreshPool(true); }
-function onSearch(v)         { state.search = v.trim(); refreshPool(true); }
+function onChapterChange(v)  { state.chapter = v; refreshPool(true); renderFilters(); }
+function onStarsChange(v)    { state.stars = v; refreshPool(true); renderFilters(); }
+function onMasteredChange(b) { state.showMastered = b; refreshPool(true); renderFilters(); }
+function onWeakChange(b)     { state.weakOnly = b; refreshPool(true); renderFilters(); }
+function onRandomChange(b)   { state.randomOrder = b; refreshPool(true); renderFilters(); }
+function onSearch(v)         { state.search = v.trim(); refreshPool(true); renderFilters(); }
+
+/* 阅读器遮字：点击任意字 → ○ 遮住，再点恢复 */
+document.addEventListener('click', function (e) {
+  if (state.mode !== 'read') return;
+  const t = (e.target && e.target.closest) ? e.target.closest('.ch') : null;
+  if (!t) return;
+  const orig = t.getAttribute('data-char');
+  if (!orig || orig === '\n' || orig === ' ' || orig === '\t') return;
+  if (t.classList.contains('masked')) {
+    t.classList.remove('masked');
+    t.textContent = orig;
+  } else {
+    t.classList.add('masked');
+    t.textContent = '○';
+  }
+});
 
 document.addEventListener('keydown', function (e) {
   // Esc：总是关闭弹窗
@@ -1439,14 +1682,9 @@ document.addEventListener('keydown', function (e) {
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') return;
   if (document.querySelector('.modal-mask.open')) return;
+  // 阅读模式：滚动浏览由浏览器处理，不拦截按键
+  if (state.mode !== 'study') return;
   if (!state.pool.length) return;
-
-  // 浏览模式：方向键 / 空格 / 回车 = 翻卡
-  if (state.mode === 'browse') {
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextCard(); }
-    else if (e.key === 'ArrowLeft') prevCard();
-    return;
-  }
   // 背诵模式：空格/回车 = 下一步（第3步默认视为还原正确），1 = 没还原出来，2 = 还原正确
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
@@ -1468,6 +1706,7 @@ function init() {
   rebuildBase();
   mastery = loadMastery();
   hookOverrides = loadHooks();
+  fieldOverrides = loadEdits();
   renderFilters();
   renderWakeBtn();
   if (wakeEnabled) applyWake();
