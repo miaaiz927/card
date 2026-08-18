@@ -280,10 +280,6 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   font-size: clamp(14px, 2.3vw, 16px); line-height: 2; color: #C9C9C9;
   white-space: pre-wrap; word-break: break-word;
 }
-.read-tip {
-  color: var(--muted); font-size: clamp(11px, 1.8vw, 13px); text-align: center;
-  padding: 8px 0 14px;
-}
 
 /* ============ 底部操作区（大触摸区域 ≥52px） ============ */
 .actions { display: flex; gap: 10px; }
@@ -414,8 +410,8 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
     </div>
   </header>
 
-  <!-- 模式切换 + 筛选栏（折叠式） -->
-  <section class="filters">
+  <!-- 模式切换 + 筛选栏（折叠式，仅背诵模式显示） -->
+  <section class="filters" id="filtersBar">
     <div class="mode-switch">
       <button id="btnModeStudy" class="active" onclick="setMode('study')">🎯 背诵</button>
       <button id="btnModeRead" onclick="setMode('read')">📖 阅读</button>
@@ -923,11 +919,13 @@ function setMode(m) {
   if (m === 'read') {
     area.classList.add('scrollable');
     app.classList.add('read-mode');
+    document.getElementById('filtersBar').style.display = 'none';   // 阅读模式有独立筛选，隐藏背诵筛选栏
     renderRead();
     document.getElementById('actionBar').innerHTML = '';
   } else {
     area.classList.remove('scrollable');
     app.classList.remove('read-mode');
+    document.getElementById('filtersBar').style.display = '';
     refreshPool(true);
   }
 }
@@ -967,8 +965,7 @@ function renderRead() {
     + '<option value="3"' + (state.stars === '3' ? ' selected' : '') + '>★★★ 3星</option>'
     + '</select>'
     + '<span class="reader-count" id="readerCount">1/' + list.length + '</span>'
-    + '</div>'
-    + '<div class="read-tip">💡 向下滑动翻阅；「← 背诵」返回三步背诵</div>';
+    + '</div>';
   list.forEach(function (c, i) {
     const kw = getKeyword(c);
     html += '<div class="read-card" data-i="' + i + '">'
