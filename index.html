@@ -945,12 +945,6 @@ function readList() {
 function renderRead() {
   const v = document.getElementById('cardView');
   const list = readList();
-  if (!list.length) {
-    v.innerHTML = '<div class="empty-state"><div class="empty-emoji">😶</div>'
-      + '<div class="empty-title">没有匹配的卡片</div>'
-      + '<div class="empty-sub">试试调整章节 / 星级</div></div>';
-    return;
-  }
   const chapters = [...new Set(KNOWLEDGE_BASE.map(c => c.chapter))];
   let html = '<div class="reader-header">'
     + '<button class="btn-back" onclick="setMode(\'study\')">← 背诵</button>'
@@ -964,17 +958,24 @@ function renderRead() {
     + '<option value="2"' + (state.stars === '2' ? ' selected' : '') + '>★★ 2星</option>'
     + '<option value="3"' + (state.stars === '3' ? ' selected' : '') + '>★★★ 3星</option>'
     + '</select>'
-    + '<span class="reader-count" id="readerCount">1/' + list.length + '</span>'
+    + '<span class="reader-count" id="readerCount">' + (list.length ? '1/' + list.length : '0/0') + '</span>'
     + '</div>';
-  list.forEach(function (c, i) {
-    const kw = getKeyword(c);
-    html += '<div class="read-card" data-i="' + i + '">'
-      + '<div class="read-card-head"><span>📖 ' + escapeHtml(c.chapter) + '</span><span>' + '★'.repeat(c.stars) + '☆'.repeat(3 - c.stars) + '</span></div>'
-      + '<div class="read-q">' + escapeHtml(getQuestion(c)) + '</div>'
-      + (kw ? '<div class="read-k">🪝 ' + escapeHtml(kw) + '</div>' : '')
-      + '<div class="read-a">' + escapeHtml(getAnswer(c)) + '</div>'
-      + '</div>';
-  });
+  // 筛选栏始终保留（无匹配时也能继续调整筛选）
+  if (!list.length) {
+    html += '<div class="empty-state"><div class="empty-emoji">😶</div>'
+      + '<div class="empty-title">没有匹配的卡片</div>'
+      + '<div class="empty-sub">试试调整章节 / 星级</div></div>';
+  } else {
+    list.forEach(function (c, i) {
+      const kw = getKeyword(c);
+      html += '<div class="read-card" data-i="' + i + '">'
+        + '<div class="read-card-head"><span>📖 ' + escapeHtml(c.chapter) + '</span><span>' + '★'.repeat(c.stars) + '☆'.repeat(3 - c.stars) + '</span></div>'
+        + '<div class="read-q">' + escapeHtml(getQuestion(c)) + '</div>'
+        + (kw ? '<div class="read-k">🪝 ' + escapeHtml(kw) + '</div>' : '')
+        + '<div class="read-a">' + escapeHtml(getAnswer(c)) + '</div>'
+        + '</div>';
+    });
+  }
   v.innerHTML = html;
   attachReadScroll();
 }
