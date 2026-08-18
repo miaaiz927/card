@@ -91,8 +91,8 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
-  height: 100%;
-  overscroll-behavior-y: none;   /* 防止下拉刷新误触（无害，保留） */
+  min-height: 100%;                 /* 文档随内容撑开：阅读器长内容可滚动 */
+  overscroll-behavior-y: none;      /* 防止下拉刷新误触（无害，保留） */
 }
 body {
   background: var(--bg);
@@ -120,8 +120,6 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   flex-direction: column;
   gap: clamp(10px, 1.8vw, 14px);
 }
-.app-title { font-size: clamp(13px, 2vw, 16px); font-weight: 700; letter-spacing: 1px; }
-.app-title .sub { font-size: clamp(10px, 1.6vw, 12px); font-weight: 400; color: var(--muted); margin-left: 6px; }
 
 /* ============ 顶部：双进度条 + 右上角入口 ============ */
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
@@ -262,6 +260,16 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   padding: 8px 12px; font-size: clamp(12px, 2vw, 14px); font-weight: 600; cursor: pointer;
   min-height: 36px; white-space: nowrap;
 }
+.btn-paint {
+  background: #2A2A2A; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 10px; font-size: clamp(12px, 1.9vw, 14px); cursor: pointer; min-height: 36px;
+}
+.btn-paint.active { background: var(--gold); color: #1a1a1a; border-color: var(--gold); font-weight: 600; }
+.card-area.painting { touch-action: none; user-select: none; }   /* 涂抹时禁用滚动/选中 */
+.paint-tip {
+  color: var(--gold); font-size: clamp(11px, 1.8vw, 13px); text-align: center;
+  padding: 4px 0 10px;
+}
 .read-card {
   padding: clamp(10px, 2vw, 14px) 2px clamp(14px, 2.5vw, 20px);
   border-bottom: 1px dashed #333;
@@ -399,8 +407,6 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
 </head>
 <body>
 <div class="app">
-  <div class="app-title">🃏 卡牌大师<span class="sub">问题 → 钩子 → 原文 · 三步递进背诵</span></div>
-
   <!-- 顶部状态栏 -->
   <header class="topbar">
     <div class="progress-area">
@@ -626,6 +632,7 @@ const state = {
   randomOrder: false,
   search: '',
   filtersOpen: false, // 折叠筛选是否展开
+  paint: false,       // 阅读器涂抹遮字模式
   pool: [],
   index: 0,
   step: 1,            // 1 初始(问题) | 2 还原模式(遮罩) | 3 核对自评(显示原文)
@@ -925,6 +932,7 @@ function setMode(m) {
     document.getElementById('actionBar').innerHTML = '';
   } else {
     area.classList.remove('scrollable');
+    if (state.paint) setPaintMode(false);
     refreshPool(true);
   }
 }
@@ -961,6 +969,7 @@ function renderRead() {
   const chapters = [...new Set(KNOWLEDGE_BASE.map(c => c.chapter))];
   let html = '<div class="reader-header">'
     + '<button class="btn-back" onclick="setMode(\'study\')">← 背诵</button>'
+    + '<button class="btn-paint" id="btnPaint" onclick="setPaintMode(!state.paint)" title="涂抹遮字：滑过文字变 ○，点已遮的恢复">🖊️ 涂抹</button>'
     + '<select id="readChapter" onchange="onReadChapter(this.value)">'
     + '<option value="全部">全部章节</option>'
     + chapters.map(ch => '<option value="' + escapeHtml(ch) + '"' + (state.chapter === ch ? ' selected' : '') + '>' + escapeHtml(ch) + '</option>').join('')
@@ -973,7 +982,8 @@ function renderRead() {
     + '</select>'
     + '<span class="reader-count" id="readerCount">1/' + list.length + '</span>'
     + '</div>'
-    + '<div class="read-tip">💡 点击正文任意字 → 变成 ○ 遮住自测；再点恢复。只遮答案，不影响进度。</div>';
+    + '<div class="paint-tip" id="paintTip" style="display:none">🖊️ 涂抹中：滑过文字变 ○ 遮住，点已遮的字恢复；关闭后恢复滚动阅读</div>'
+    + '<div class="read-tip">💡 单击任意字 → 变 ○ 遮住自测，再点恢复；开「🖊️ 涂抹」可手指滑过整片遮住。不影进度。</div>';
   list.forEach(function (c, i) {
     const kw = getKeyword(c);
     html += '<div class="read-card" data-i="' + i + '">'
@@ -1660,20 +1670,70 @@ function onWeakChange(b)     { state.weakOnly = b; refreshPool(true); renderFilt
 function onRandomChange(b)   { state.randomOrder = b; refreshPool(true); renderFilters(); }
 function onSearch(v)         { state.search = v.trim(); refreshPool(true); renderFilters(); }
 
-/* 阅读器遮字：点击任意字 → ○ 遮住，再点恢复 */
-document.addEventListener('click', function (e) {
-  if (state.mode !== 'read') return;
-  const t = (e.target && e.target.closest) ? e.target.closest('.ch') : null;
-  if (!t) return;
+/* =====================================================================
+ * 阅读器涂抹遮字（🖊️ 模式）
+ * 开启：手指滑过文字 → 变 ○ 遮住；点已遮的字 → 恢复。滚动禁用。
+ * 关闭：正常滚动；单击字遮住、再点恢复。
+ * ===================================================================== */
+let painting = false, paintStart = null;
+
+function setPaintMode(on) {
+  state.paint = on;
+  document.getElementById('cardView').classList.toggle('painting', on);
+  const btn = document.getElementById('btnPaint');
+  if (btn) btn.classList.toggle('active', on);
+  const tip = document.getElementById('paintTip');
+  if (tip) tip.style.display = on ? '' : 'none';
+}
+function maskChar(t, masked) {
   const orig = t.getAttribute('data-char');
   if (!orig || orig === '\n' || orig === ' ' || orig === '\t') return;
-  if (t.classList.contains('masked')) {
-    t.classList.remove('masked');
-    t.textContent = orig;
-  } else {
+  if (masked) {
     t.classList.add('masked');
     t.textContent = '○';
+  } else {
+    t.classList.remove('masked');
+    t.textContent = orig;
   }
+}
+function paintDown(e) {
+  if (state.mode !== 'read' || !state.paint) return;
+  const t = (e.target && e.target.closest) ? e.target.closest('.ch') : null;
+  if (!t) return;
+  painting = true;
+  paintStart = { x: e.clientX, y: e.clientY, t: t };
+  e.preventDefault();
+}
+function paintMove(e) {
+  if (!painting || !paintStart) return;
+  const dx = e.clientX - paintStart.x, dy = e.clientY - paintStart.y;
+  if (dx * dx + dy * dy < 36) return;          // 6px 内视为点击
+  paintStart.moved = true;
+  const el = document.elementFromPoint ? document.elementFromPoint(e.clientX, e.clientY) : null;
+  const t = (el && el.closest) ? el.closest('.ch') : null;
+  if (t && !t.classList.contains('masked')) maskChar(t, true);
+}
+function paintUp() {
+  if (!painting || !paintStart) return;
+  const st = paintStart;
+  painting = false;
+  paintStart = null;
+  if (st.t && !st.moved) {
+    // 未发生拖动 = 纯点击：已遮恢复，未遮遮住
+    maskChar(st.t, !st.t.classList.contains('masked'));
+  }
+}
+document.addEventListener('pointerdown', paintDown);
+document.addEventListener('pointermove', paintMove);
+document.addEventListener('pointerup', paintUp);
+document.addEventListener('pointercancel', function () { painting = false; paintStart = null; });
+
+/* 阅读器遮字点击（非涂抹模式）：点击任意字 → ○ 遮住，再点恢复 */
+document.addEventListener('click', function (e) {
+  if (state.mode !== 'read' || state.paint) return;   // 涂抹模式由 pointer 处理
+  const t = (e.target && e.target.closest) ? e.target.closest('.ch') : null;
+  if (!t) return;
+  maskChar(t, !t.classList.contains('masked'));
 });
 
 document.addEventListener('keydown', function (e) {
