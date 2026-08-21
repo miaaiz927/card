@@ -121,21 +121,29 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
   gap: clamp(10px, 1.8vw, 14px);
 }
 
-/* ============ 顶部：双进度条 + 右上角入口 ============ */
-.topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.progress-area { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* ============ 顶部：两行（进度条 | 倒计时/按钮） ============ */
+.topbar { display: flex; flex-direction: column; gap: 6px; }
+.top-row { display: flex; align-items: center; gap: 10px; }
+.top-row .p-row { flex: 1; min-width: 0; }
 .p-row { display: flex; align-items: center; gap: 8px; font-size: clamp(11px, 1.8vw, 13px); color: var(--muted); }
-.p-bar { flex: 1; height: 8px; background: #2A2A2A; border-radius: 4px; overflow: hidden; }
+.p-bar { flex: 1; min-width: 50px; height: 8px; background: #2A2A2A; border-radius: 4px; overflow: hidden; }
 .p-fill { height: 100%; border-radius: 4px; width: 0; transition: width .4s ease; }
 .p-fill.gold { background: linear-gradient(90deg, #F5C542, #FFB300); }
 .p-fill.blue { background: linear-gradient(90deg, #64B5F6, #42A5F5); }
 .p-num { min-width: 4.2em; text-align: right; font-variant-numeric: tabular-nums; }
-.top-actions { display: flex; flex-direction: row; align-items: center; gap: 10px; flex-shrink: 0; }
-.top-actions button {
-  background: none; border: none; color: var(--blue);
-  font-size: clamp(12px, 2vw, 14px); cursor: pointer; padding: 4px 2px; text-align: right;
+/* 右侧考试倒计时（横排） */
+.exam-block { display: flex; align-items: baseline; gap: 4px; flex-shrink: 0; white-space: nowrap; }
+.exam-label { font-size: clamp(10px, 1.6vw, 12px); color: var(--muted); }
+.exam-value { font-size: clamp(13px, 2.1vw, 16px); font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+.exam-value.urgent { color: #E57373; }
+/* 右侧按钮（横排） */
+.btn-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-row-actions button {
+  background: #2A2A2A; border: 1px solid var(--border); border-radius: 8px;
+  font-size: clamp(14px, 2.2vw, 16px); width: 40px; height: 36px;
+  cursor: pointer; text-align: center; padding: 0;
 }
-.top-actions button:active { opacity: .6; }
+.btn-row-actions button:active { opacity: .6; }
 
 /* ============ 筛选栏 ============ */
 .filters {
@@ -162,6 +170,17 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
 }
 .filters label.disabled { opacity: .4; pointer-events: none; }
 .filters input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold); }
+
+/* 星级多选（紧凑三复选框） */
+.stars-sel { display: flex; align-items: center; gap: 10px; }
+.stars-sel label {
+  display: flex; align-items: center; gap: 3px;
+  font-size: clamp(12px, 1.9vw, 14px); color: var(--muted); cursor: pointer; user-select: none;
+}
+.stars-sel input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--gold); }
+.stars-sel-read { gap: 6px; }
+.stars-sel-read label { font-size: clamp(11px, 1.7vw, 13px); }
+.stars-sel-read input[type="checkbox"] { width: 14px; height: 14px; }
 
 /* 折叠筛选：平时一行，点开展开 */
 .filter-row { display: flex; gap: 8px; align-items: center; flex: 1 1 100%; }
@@ -397,16 +416,19 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
 </head>
 <body>
 <div class="app" id="appRoot">
-  <!-- 顶部状态栏 -->
+  <!-- 顶部状态栏：两行对齐（进度条 | 倒计时 / 按钮） -->
   <header class="topbar">
-    <div class="progress-area">
+    <div class="top-row">
       <div class="p-row"><span>⭐ 三星掌握率</span><div class="p-bar"><div id="p3" class="p-fill gold"></div></div><span id="p3num" class="p-num">0/0</span></div>
-      <div class="p-row"><span>📚 总进度</span><div class="p-bar"><div id="pt" class="p-fill blue"></div></div><span id="ptnum" class="p-num">0/0</span></div>
+      <div class="exam-block"><span class="exam-label">⏳ 距考试</span><span class="exam-value" id="examText">–</span></div>
     </div>
-    <div class="top-actions">
-      <button id="btnWake" onclick="toggleWake()">🌙</button>
-      <button onclick="openMastered()">📋 已掌握列表</button>
-      <button onclick="openModal('modalData')">⚙️ 数据</button>
+    <div class="top-row">
+      <div class="p-row"><span>📚 总进度</span><div class="p-bar"><div id="pt" class="p-fill blue"></div></div><span id="ptnum" class="p-num">0/0</span></div>
+      <div class="btn-row-actions">
+        <button id="btnWake" title="屏幕常亮" onclick="toggleWake()">🌙</button>
+        <button title="已掌握列表" onclick="openMastered()">📋</button>
+        <button title="数据管理" onclick="openModal('modalData')">⚙️</button>
+      </div>
     </div>
   </header>
 
@@ -423,12 +445,11 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
     </div>
     <div class="filter-detail" id="filterDetail">
       <select id="filterChapter" onchange="onChapterChange(this.value)"></select>
-      <select id="filterStars" onchange="onStarsChange(this.value)">
-        <option value="全部">全部星级</option>
-        <option value="1">★ 1星</option>
-        <option value="2">★★ 2星</option>
-        <option value="3">★★★ 3星</option>
-      </select>
+      <span class="stars-sel">
+        <label><input type="checkbox" id="star1" checked onchange="onStarSelChange(1, this.checked)"> ★1</label>
+        <label><input type="checkbox" id="star2" checked onchange="onStarSelChange(2, this.checked)"> ★2</label>
+        <label><input type="checkbox" id="star3" checked onchange="onStarSelChange(3, this.checked)"> ★3</label>
+      </span>
       <label id="lblMastered"><input type="checkbox" id="chkMastered" onchange="onMasteredChange(this.checked)"> 显示已掌握</label>
       <label id="lblWeak"><input type="checkbox" id="chkWeak" onchange="onWeakChange(this.checked)"> 只看薄弱</label>
       <label><input type="checkbox" id="chkRandom" onchange="onRandomChange(this.checked)"> 🔀 随机顺序</label>
@@ -487,6 +508,12 @@ button { touch-action: manipulation; }   /* 防双击缩放 */
         <button id="btnDoImport" class="btn-gold" disabled onclick="doImport()">✅ 确认导入</button>
       </div>
       <div id="importPreview"></div>
+
+      <h4>📅 考试日期（倒计时）</h4>
+      <div class="hint">默认 2026-10-24（按你说的时间）。日期有变就在这里改，倒计时实时更新。</div>
+      <div class="btn-row">
+        <input type="date" id="examDateInput" onchange="onExamDateChange(this.value)" style="flex:1;background:#2A2A2A;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-height:44px;font-size:clamp(13px,2vw,15px)">
+      </div>
 
       <h4>💾 学习进度（跨设备同步）</h4>
       <div class="hint">导入的卡片、自定义钩子、掌握进度都保存在<b>本浏览器</b> localStorage（刷新不丢）。<br>
@@ -616,7 +643,7 @@ const EDIT_KEY = 'CardFieldOverrides';
 const state = {
   mode: 'study',      // 'study' 背诵 | 'read' 阅读（沉浸阅读器）
   chapter: '全部',
-  stars: '全部',
+  starsSel: { 1: true, 2: true, 3: true },  // 星级多选（默认全选 = 全部星级）
   showMastered: false,
   weakOnly: false,
   randomOrder: false,
@@ -700,7 +727,7 @@ function dateStr() {
  * ===================================================================== */
 function matchesFilter(c) {
   if (state.chapter !== '全部' && c.chapter !== state.chapter) return false;
-  if (state.stars !== '全部' && c.stars !== Number(state.stars)) return false;
+  if (!state.starsSel[c.stars]) return false;   // 星级多选：勾选包含该星级才显示
   if (state.search) {
     const s = state.search.toLowerCase();
     const hit = (getQuestion(c) + ' ' + getKeyword(c) + ' ' + getAnswer(c)).toLowerCase().indexOf(s) !== -1;
@@ -778,6 +805,39 @@ function renderProgress() {
   document.getElementById('p3num').textContent = s3mastered + '/' + s3total;
   document.getElementById('pt').style.width = pt + '%';
   document.getElementById('ptnum').textContent = mastered + '/' + total;
+  renderExam();
+}
+
+/* =====================================================================
+ * 考试倒计时（日期可在数据弹窗修改，存 localStorage）
+ * ===================================================================== */
+let examDateStr = '2026-10-24';
+try { examDateStr = localStorage.getItem('ExamDate') || examDateStr; } catch (e) {}
+
+function onExamDateChange(v) {
+  if (!v) return;
+  examDateStr = v;
+  try { localStorage.setItem('ExamDate', v); } catch (e) {}
+  renderExam();
+  toast('📅 考试日期已更新');
+}
+
+function renderExam() {
+  const el = document.getElementById('examText');
+  const inp = document.getElementById('examDateInput');
+  if (inp) inp.value = examDateStr;
+  if (!el) return;
+  const d = new Date(examDateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) { el.textContent = '未设置'; el.classList.remove('urgent'); return; }
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diff = Math.round((d - now) / 86400000);
+  let txt = '', urgent = false;
+  if (diff > 0) { txt = diff + ' 天'; urgent = (diff <= 30); }
+  else if (diff === 0) { txt = '今天考试！'; urgent = true; }
+  else { txt = '已结束'; }
+  el.textContent = txt;
+  el.classList.toggle('urgent', urgent);
 }
 
 function renderFilters() {
@@ -786,12 +846,17 @@ function renderFilters() {
   sel.innerHTML = '<option value="全部">全部章节</option>'
     + chapters.map(ch => '<option value="' + escapeHtml(ch) + '">' + escapeHtml(ch) + '</option>').join('');
   sel.value = state.chapter;
+  // 星级复选框回填
+  document.getElementById('star1').checked = !!state.starsSel[1];
+  document.getElementById('star2').checked = !!state.starsSel[2];
+  document.getElementById('star3').checked = !!state.starsSel[3];
   // 折叠按钮摘要
   const sum = document.getElementById('filterSummary');
   if (sum) {
     const parts = [];
     parts.push(state.chapter === '全部' ? '全部章节' : state.chapter.replace(/^第(\d+)章\s*/, '第$1章'));
-    parts.push(state.stars === '全部' ? '全部星级' : '★'.repeat(Number(state.stars)));
+    const selStars = [1, 2, 3].filter(s => state.starsSel[s]);
+    parts.push(selStars.length === 3 ? '全部星级' : selStars.map(s => '★' + s).join(' '));
     if (state.showMastered) parts.push('含已掌握');
     if (state.weakOnly) parts.push('只看薄弱');
     if (state.randomOrder) parts.push('随机');
@@ -937,7 +1002,7 @@ function setMode(m) {
 function readList() {
   return KNOWLEDGE_BASE.filter(c => {
     if (state.chapter !== '全部' && c.chapter !== state.chapter) return false;
-    if (state.stars !== '全部' && c.stars !== Number(state.stars)) return false;
+    if (!state.starsSel[c.stars]) return false;
     return true;
   }).sort((a, b) => a.id - b.id);
 }
@@ -952,12 +1017,11 @@ function renderRead() {
     + '<option value="全部">全部章节</option>'
     + chapters.map(ch => '<option value="' + escapeHtml(ch) + '"' + (state.chapter === ch ? ' selected' : '') + '>' + escapeHtml(ch) + '</option>').join('')
     + '</select>'
-    + '<select id="readStars" onchange="onReadStars(this.value)">'
-    + '<option value="全部"' + (state.stars === '全部' ? ' selected' : '') + '>全部星级</option>'
-    + '<option value="1"' + (state.stars === '1' ? ' selected' : '') + '>★ 1星</option>'
-    + '<option value="2"' + (state.stars === '2' ? ' selected' : '') + '>★★ 2星</option>'
-    + '<option value="3"' + (state.stars === '3' ? ' selected' : '') + '>★★★ 3星</option>'
-    + '</select>'
+    + '<span class="stars-sel stars-sel-read">'
+    + '<label><input type="checkbox" id="rStar1" ' + (state.starsSel[1] ? 'checked' : '') + ' onchange="onReadStarSel(1, this.checked)"> ★1</label>'
+    + '<label><input type="checkbox" id="rStar2" ' + (state.starsSel[2] ? 'checked' : '') + ' onchange="onReadStarSel(2, this.checked)"> ★2</label>'
+    + '<label><input type="checkbox" id="rStar3" ' + (state.starsSel[3] ? 'checked' : '') + ' onchange="onReadStarSel(3, this.checked)"> ★3</label>'
+    + '</span>'
     + '<span class="reader-count" id="readerCount">' + (list.length ? '1/' + list.length : '0/0') + '</span>'
     + '</div>';
   // 筛选栏始终保留（无匹配时也能继续调整筛选）
@@ -1004,7 +1068,7 @@ function attachReadScroll() {
   update();
 }
 function onReadChapter(v) { state.chapter = v; renderFilters(); renderRead(); }
-function onReadStars(v)   { state.stars = v; renderFilters(); renderRead(); }
+function onReadStarSel(s, checked) { state.starsSel[s] = checked; renderFilters(); renderRead(); }
 
 /* =====================================================================
  * 三步递进状态机操作
@@ -1647,7 +1711,7 @@ document.addEventListener('visibilitychange', function () {
  * 事件
  * ===================================================================== */
 function onChapterChange(v)  { state.chapter = v; refreshPool(true); renderFilters(); }
-function onStarsChange(v)    { state.stars = v; refreshPool(true); renderFilters(); }
+function onStarSelChange(s, b) { state.starsSel[s] = b; refreshPool(true); renderFilters(); }
 function onMasteredChange(b) { state.showMastered = b; refreshPool(true); renderFilters(); }
 function onWeakChange(b)     { state.weakOnly = b; refreshPool(true); renderFilters(); }
 function onRandomChange(b)   { state.randomOrder = b; refreshPool(true); renderFilters(); }
